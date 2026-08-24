@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-<rect width="1024" height="1024" fill="#FFFFFF"/>
-<rect x="252" y="292" width="64" height="132" rx="10" fill="#003E6B"/>
-<rect x="202" y="382" width="398" height="200" rx="46" fill="#0061AB"/>
-<rect x="600" y="312" width="222" height="270" rx="26" fill="#0061AB"/>
-<rect x="638" y="354" width="96" height="110" rx="18" fill="#003E6B"/>
-<rect x="220" y="582" width="590" height="44" rx="14" fill="#003E6B"/>
-<circle cx="310" cy="664" r="56" fill="#003E6B"/><circle cx="310" cy="664" r="24" fill="#FFFFFF"/><circle cx="482" cy="664" r="56" fill="#003E6B"/><circle cx="482" cy="664" r="24" fill="#FFFFFF"/><circle cx="720" cy="664" r="56" fill="#003E6B"/><circle cx="720" cy="664" r="24" fill="#FFFFFF"/>
-<rect x="244" y="742" width="556" height="14" rx="7" fill="#003E6B"/>
+<g transform="rotate(-12 512 512)">
+  <rect x="192" y="312" width="640" height="400" rx="56" fill="#0061AB"/>
+  <g fill="#FFFFFF">
+    <circle cx="320" cy="512" r="14"/><circle cx="384" cy="512" r="14"/>
+    <circle cx="448" cy="512" r="14"/><circle cx="512" cy="512" r="14"/>
+    <circle cx="576" cy="512" r="14"/><circle cx="640" cy="512" r="14"/>
+    <circle cx="704" cy="512" r="14"/>
+  </g>
+</g>
 </svg>
