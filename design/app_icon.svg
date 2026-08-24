@@ -5,8 +5,8 @@
   <circle cx="240" cy="512" r="42" fill="#FFFFFF"/>
   <circle cx="784" cy="512" r="42" fill="#FFFFFF"/>
   <g fill="#FFFFFF">
-    <circle cx="380" cy="512" r="13"/><circle cx="450" cy="512" r="13"/>
-    <circle cx="520" cy="512" r="13"/><circle cx="590" cy="512" r="13"/>
+    <circle cx="396" cy="512" r="13"/><circle cx="464" cy="512" r="13"/>
+    <circle cx="532" cy="512" r="13"/><circle cx="600" cy="512" r="13"/>
   </g>
 </g>
 </svg>
