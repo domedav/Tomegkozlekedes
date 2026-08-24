@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-<g transform="rotate(-12 512 512)">
-  <rect x="192" y="312" width="640" height="400" rx="56" fill="#0061AB"/>
+<rect width="1024" height="1024" fill="#FFFFFF"/>
+<g transform="rotate(-10 512 512)">
+  <path fill="#0061AB" d="M288,342 h448 a48,48 0 0 1 48,48 v74 a42,42 0 0 0 0,96 v74 a48,48 0 0 1 -48,48 h-448 a48,48 0 0 1 -48,-48 v-74 a42,42 0 0 0 0,-96 v-74 a48,48 0 0 1 48,-48 z"/>
+  <circle cx="240" cy="512" r="42" fill="#FFFFFF"/>
+  <circle cx="784" cy="512" r="42" fill="#FFFFFF"/>
   <g fill="#FFFFFF">
-    <circle cx="320" cy="512" r="14"/><circle cx="384" cy="512" r="14"/>
-    <circle cx="448" cy="512" r="14"/><circle cx="512" cy="512" r="14"/>
-    <circle cx="576" cy="512" r="14"/><circle cx="640" cy="512" r="14"/>
-    <circle cx="704" cy="512" r="14"/>
+    <circle cx="380" cy="512" r="13"/><circle cx="450" cy="512" r="13"/>
+    <circle cx="520" cy="512" r="13"/><circle cx="590" cy="512" r="13"/>
   </g>
 </g>
 </svg>
