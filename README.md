@@ -1,44 +1,42 @@
-# MÁV Jegy (com.domedav.mavjegy)
+# Tömegközlekedés
 
-Nem hivatalos MÁV jegy/bérlet-nézegető Android app.
-- **Jegyek fül**: érvényes/lejárt bontásban, cache-elve, részletes nézet AZTEC/CODE128 vonalkód toggle-lel, 60%-os vertikális görgetés az olvasóhoz pozicionáláshoz
-- **Vásárlás fül**: WebView a jegy.mav.hu-ra (cookie perzisztencia → egyszeri bejelentkezés)
-- Automata token-frissítés / újrabejelentkezés a háttérben
-- Material 3 Expressive, ikonvezérelt UI
+Android alkalmazás magyar tömegközlekedési jegyek és bérletek (jegy/bérlet) kezelésére, Jetpack Compose-szal készítve.
 
-## Backend
-`https://jegy-a.mav.hu/IK_API_PROD/api/` — GetUserToken / RefreshUserToken /
-GetPreviousPurchases / GetPreviousPurchaseDetails. Auth: `UserTokenXml` header.
+- **Csomag / névtér:** `com.domedav.mavjegy`
+- **Verzió:** `1.0.0` (versionCode 1)
+- **minSdk:** 26 · **targetSdk:** 36 · **compileSdk:** 36
+- **Nyelv és keretrendszer:** Kotlin, Jetpack Compose, Material 3
 
-## Build (Termux / PC)
+## Megvalósított funkciók
+
+- Jegyek és bérletek listája
+- Vásárlás beágyazott WebView-vel, perzisztens sessionnel (megmarad tab-váltáskor és app-újraindítás után is)
+- Jegy tulajdonosi adatok szerkesztése (név, születési dátum, azonosító, fotó) és vonalkód megjelenítése
+- Globális snackbar overlay (alsó pozíció, 5 mp után automatikus eltűnés, csak le/bal/jobb irányba húzható el)
+- Navigációs pill oldalra rögzítése (bal/jobb oldal)
+
+## Build
+
+A `buildRelease.sh` szkript Termux alatt reproducible release buildet készít: letölti a Gradle-t és a minimális Android SDK-t, valamint proxy-t állít be.
+
+Használat:
 
 ```bash
-# Termux: csomagok
-pkg install openjdk-21 gradle aapt2 android-sdk  # vagy saját SDK setup
-
-cd MavJegyApp
-gradle assembleRelease          # vagy ./gradlew ha wrapper jar telepítve
-# kimenet: app/build/outputs/apk/release/app-release.apk
+bash buildRelease.sh assembleRelease
 ```
 
-## Release kulcs
-- `release.keystore` alias `mavjegy`
-- jelszavak: `keystore.properties` (`MavJegy2026Release`)
-- ⚠️ A keystore-t és a properties-t NE töltsd fel nyilvános repóba!
+(Debug buildhez használd az `assembleDebug` argumentumot.)
 
-## Struktúra
+A kész release APK helye:
+
 ```
-app/src/main/java/com/domedav/mavjegy/
-├── MavJegyApp.kt            # Application (api + tokenStore)
-├── MainActivity.kt          # root nav, auto session
-├── data/
-│   ├── MavApi.kt            # HTTP + auto re-login
-│   ├── TokenStore.kt        # EncryptedSharedPreferences
-│   └── PurchaseCache.kt     # fájl cache
-├── ui/
-│   ├── theme/Theme.kt       # M3 Expressive téma
-│   └── screens/             # Login, Tickets, TicketDetail, Buy(WebView)
-└── util/
-    ├── BarcodeGenerator.kt  # zxing AZTEC/CODE128
-    └── TicketDecoder.kt     # serializedTicketData inflate
+app/build/outputs/apk/release/app-release.apk
 ```
+
+## Biztonság és közreműködés
+
+A `release.keystore` és a `keystore.properties` (az aláíró kulcs és a jelszavak) **nincsenek** a repóban, a `.gitignore` kizárja őket. Saját aláíró kulcsot kell biztosítani a release buildhez. Ne commitolj titkokat.
+
+## Licenc
+
+A projektet „ahogy van” (as-is) biztosítjuk, konkrét licenc nem került megadásra.

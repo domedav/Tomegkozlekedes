@@ -1,4 +1,21 @@
+# Build outputs
 build/
 .gradle/
-local.properties
+.kotlin/
+captures/
 *.apk
+*.aar
+
+# IDE
+.idea/
+*.iml
+
+# Local config & secrets — NEVER commit these
+local.properties
+release.keystore
+*.keystore
+*.jks
+keystore.properties
+
+# OS
+.DS_Store
