@@ -19,3 +19,11 @@ keystore.properties
 
 # OS
 .DS_Store
+
+# Reverse-engineering artifacts (never commit — contain PII / ticket data)
+jegykep_orszagberlet.*
+letolt_*.py
+vim_tlsclient.go
+vimclient
+go.mod
+go.sum
