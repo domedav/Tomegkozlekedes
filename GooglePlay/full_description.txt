@@ -1,0 +1,14 @@
+Tömegközlekedés — nem hivatalos, nyílt forrású MÁV-jegykezelő.
+
+Miért készült? A hivatalos app kiszámíthatatlan volt, és a jegykép nem nagyítható. Itt a jegykép 0,15–5× között szabadon mozgatható, így rosszul elhelyezett leolvasónál is beolvasható.
+
+• Trackermentes — nincs Firebase/Analytics, csak INTERNET engedély
+• Gyors és robusztus — offline is megőrzi a jegyeidet
+• Mindent gyorsítótáraz — jegykép, jegyek, típusnevek
+• Pici — release APK 1,9 MB
+• Dinamikus Material You — Android 12-től a rendszer színeit követi
+• Vezetőbarát — max fényerő, eltolható/nagyítható kód, megosztás
+
+A vásárlás a hivatalos https://jegy.mav.hu oldalon, beágyazott WebView-ban történik. Az app nem áll kapcsolatban a MÁV Zrt.-vel.
+
+Nyílt forráskód: GitHubon elérhető, MIT licenc.
