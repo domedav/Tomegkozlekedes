@@ -27,3 +27,6 @@ Ez az alkalmazás a hivatalos **MÁV alkalmazás** visszafejtett változata.
 Az alkalmazás nem áll kapcsolatban a MÁV Zrt.-vel, nem tőlük származik, és a MÁV semmilyen
 formában nem támogatja, nem hagyja jóvá és nem hitelesíti. A projekt célja kizárólag az, hogy
 egy nyílt, a hivatalos klienstől független alternatív felületet biztosítson.
+
+## Build
+*! Az alkalmazás build flow-ja termuxra van optimalizálva, ezért gépen buildelve lehet configolni kell.*
