@@ -28,5 +28,7 @@ Az alkalmazás nem áll kapcsolatban a MÁV Zrt.-vel, nem tőlük származik, é
 formában nem támogatja, nem hagyja jóvá és nem hitelesíti. A projekt célja kizárólag az, hogy
 egy nyílt, a hivatalos klienstől független alternatív felületet biztosítson.
 
-## Build
+## Technikai információ
 *! Az alkalmazás build flow-ja termuxra van optimalizálva, ezért gépen buildelve lehet configolni kell.*
+
+Az appot többféle AI ágens készítette *(Muse Spark 1.2, MiMo V2.5)*, OpenCode alatt, illetve többféle python könyvtár használatával készültek a grafikus elemek.
