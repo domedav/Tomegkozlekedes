@@ -1,15 +1,15 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="1024" android:viewportHeight="1024">
-    <group android:rotation="-10" android:pivotX="512" android:pivotY="512">
-        <!-- jegy test: kerekített sarkok + bal/jobbra félkör lyukasztás -->
+    <group android:rotation="-9" android:pivotX="512" android:pivotY="512">
+        <!-- jegytest korvonal: 440x244, r50 sarkok, befelé ívelt notch-okkal -->
         <path
-            android:pathData="M288,342 H736 A48,48 0 0 1 784,390 V470 A42,42 0 0 0 784,554 V634 A48,48 0 0 1 736,682 H288 A48,48 0 0 1 240,634 V554 A42,42 0 0 0 240,470 V390 A48,48 0 0 1 288,342 Z"
+            android:pathData="M342,390H682A50,50 0 0 1 732,440V478A34,34 0 0 0 732,546V584A50,50 0 0 1 682,634H342A50,50 0 0 1 292,584V546A34,34 0 0 0 292,478V440A50,50 0 0 1 342,390Z"
             android:strokeColor="#FFFFFF" android:strokeWidth="26"
             android:strokeLineJoin="round" android:fillColor="#00000000"/>
-        <!-- szaggatott perforáció (középre igazítva: +22 a tengelyhez) -->
+        <!-- 5 perforacios vonalka a kozeptengelyen -->
         <path
-            android:pathData="M362,512 H422 M482,512 H542 M602,512 H662"
+            android:pathData="M384,512H416M440,512H472M496,512H528M552,512H584M608,512H640"
             android:strokeColor="#FFFFFF" android:strokeWidth="24"
             android:strokeLineCap="round" android:fillColor="#00000000"/>
     </group>

@@ -352,5 +352,6 @@ internal object DemoData {
     }
 
     fun matches(email: String, password: String): Boolean =
-        email.trim() == DEMO_EMAIL && password == DEMO_PASSWORD
+        email.trim().equals(DEMO_EMAIL, ignoreCase = true) &&
+            password.trim().equals(DEMO_PASSWORD, ignoreCase = true)
 }

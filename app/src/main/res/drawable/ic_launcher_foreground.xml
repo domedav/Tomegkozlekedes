@@ -1,27 +1,12 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="1024" android:viewportHeight="1024">
-    <group android:rotation="-10" android:pivotX="512" android:pivotY="512">
+    <group android:rotation="-9" android:pivotX="512" android:pivotY="512">
+        <!-- jegytest: korvonalba vajt befelé ívelt notch-ok + evenOdd potty-lyukak
+             (a notch-korok nem loghatnak ki a jegybol, kulonben evenOdd kitolti oket) -->
         <path
-            android:fillColor="#0061AB"
-            android:pathData="M288,342h448a48,48 0 0 1 48,48v74a42,42 0 0 0 0,96v74a48,48 0 0 1 -48,48h-448a48,48 0 0 1 -48,-48v-74a42,42 0 0 0 0,-96v-74a48,48 0 0 1 48,-48z" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M282,512m-42,0a42,42 0 1 0 84,0a42,42 0 1 0 -84,0" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M742,512m-42,0a42,42 0 1 0 84,0a42,42 0 1 0 -84,0" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M396,512m-13,0a13,13 0 1 0 26,0a13,13 0 1 0 -26,0" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M464,512m-13,0a13,13 0 1 0 26,0a13,13 0 1 0 -26,0" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M532,512m-13,0a13,13 0 1 0 26,0a13,13 0 1 0 -26,0" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M600,512m-13,0a13,13 0 1 0 26,0a13,13 0 1 0 -26,0" />
+            android:fillColor="#115FB0"
+            android:fillType="evenOdd"
+            android:pathData="M342,390H682A50,50 0 0 1 732,440V478A34,34 0 0 0 732,546V584A50,50 0 0 1 682,634H342A50,50 0 0 1 292,584V546A34,34 0 0 0 292,478V440A50,50 0 0 1 342,390ZM402,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0ZM457,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0ZM512,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0ZM567,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0ZM622,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0Z" />
     </group>
 </vector>

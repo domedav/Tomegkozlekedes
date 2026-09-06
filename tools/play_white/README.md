@@ -24,6 +24,15 @@ python3 generate.py
 - Anonimizálás NINCS (user-döntés, saját felelősségre publikus).
 - Eredeti fájlokhoz nem nyúl (csak `src/` másolatokat olvas).
 
+## Feature graphic
+
+`python3 feature_graphic.py` → `out/featureGraphic.png`
+(1024×500, alpha nélkül, Play-kész). Balra ikon + „Tömegközlekedés" +
+„Jegyeid egy helyen", jobbra döntött, nagyobb telefon jegykep-full
+tartalommal + 2 érték-chip („Offline jegyek", „Nagyítható jegykép" —
+mindkettő kódban igazolt: `OfflineStore`, pinch-zoom; bővebben a fő
+README Funkciók fejezetében).
+
 ## Ikonok
 
 [Phosphor Icons](https://phosphoricons.com) (MIT © Phosphor Icons),
