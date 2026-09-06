@@ -95,6 +95,8 @@ fun MavinformScreen(api: MavApi) {
 
     // Keresés
     var query by remember { mutableStateOf("") }
+    // Aktív keresésnél végiglapozunk; true, ha minden oldalt átnéztünk (vagy hiba állította le)
+    var searchComplete by remember { mutableStateOf(false) }
 
     // Detail popup
     var selectedItem by remember { mutableStateOf<MavinformItem?>(null) }
@@ -131,6 +133,7 @@ fun MavinformScreen(api: MavApi) {
         if (loading || loadingMore) return
         if (!isOnline(context)) {
             error = context.getString(R.string.err_no_internet)
+            if (query.trim().isNotEmpty()) searchComplete = true
             return
         }
         if (page == 0) loading = true else loadingMore = true
@@ -149,6 +152,8 @@ fun MavinformScreen(api: MavApi) {
             pageOk = newItems.isNotEmpty()
         } catch (e: Exception) {
             if (allItems.isEmpty()) error = e.message ?: e.javaClass.simpleName
+            // Aktív keresésnél a sikertelen oldal véget vet a láncnak (nincs retry-loop)
+            if (query.trim().isNotEmpty()) searchComplete = true
         } finally {
             loading = false
             loadingMore = false
@@ -158,6 +163,8 @@ fun MavinformScreen(api: MavApi) {
         // hiba esetén nem retry-loopolunk.
         if (pageOk && hasMore && query.trim().isNotEmpty()) {
             scope.launch { loadPage(currentPage + 1) }
+        } else if (query.trim().isNotEmpty()) {
+            searchComplete = true
         }
     }
 
@@ -167,7 +174,17 @@ fun MavinformScreen(api: MavApi) {
             currentPage = 0
             hasMore = true
             loadingMore = false
+            searchComplete = false
             loadPage(0)
+        }
+    }
+
+    // Keresés indulásakor/módosításakor: ha van még be nem töltött oldal,
+    // elindítjuk a háttér-láncot (a loadPage vége láncol tovább)
+    LaunchedEffect(query) {
+        searchComplete = false
+        if (query.trim().isNotEmpty() && hasMore && !loading && !loadingMore) {
+            scope.launch { loadPage(currentPage + 1) }
         }
     }
 
@@ -333,7 +350,34 @@ fun MavinformScreen(api: MavApi) {
                             }
                         )
                     }
-                    if (loadingMore) {
+                    if (query.trim().isNotEmpty()) {
+                        // Keresés lábléc: töltünk még, vagy ez minden
+                        item {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                if (!searchComplete || loadingMore) {
+                                    Text(
+                                        text = stringResource(R.string.news_searching_more),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    LinearProgressIndicator(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                } else {
+                                    Text(
+                                        text = stringResource(R.string.news_search_done, filteredItems.size),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    } else if (loadingMore) {
                         item {
                             Box(
                                 modifier = Modifier.fillMaxWidth().padding(16.dp),

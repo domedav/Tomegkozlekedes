@@ -75,6 +75,8 @@
     <string name="news_error">Nem sikerült betölteni a híreket.</string>
     <string name="news_search_hint">Keresés a hírekben…</string>
     <string name="news_no_results">Nincsenek találatok.</string>
+    <string name="news_searching_more">További oldalak átnézése…</string>
+    <string name="news_search_done">Ez minden • %1$d találat</string>
     <string name="desc_reg_name">Add meg a vezeték- és keresztneved.</string>
     <string name="desc_reg_email">Erre az email címre küldjük a visszaigazolást.</string>
     <string name="desc_reg_birth">A kedvezményekhez szükség van a születési dátumodra.</string>
