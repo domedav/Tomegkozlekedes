@@ -6,6 +6,10 @@
 <img width="240" height="450" alt="03_duo_login-register" src="https://github.com/user-attachments/assets/09e90aa9-b452-4cec-9a0f-59c8a8cbc839" />
 <img width="240" height="450" alt="04_one_news-page" src="https://github.com/user-attachments/assets/7c4fd8c3-2885-4093-9c2e-b405ad71245c" />
 
+## Letöltés
+[![Letöltés GitHubról](https://github.com/user-attachments/assets/2f40eb52-53cd-4964-91cb-7c07c53e814c)](https://github.com/domedav/MavJegyApp/releases)
+[![Letöltés Google Playről](https://github.com/user-attachments/assets/49aa20db-5fb5-46c9-9286-eb538177b3f1)](https://play.google.com/store/apps/details?id=com.domedav.mavjegy)
+
 ## Használat
 
 Regisztrálj fiókot, vagy jelentkezz be a MÁV-fiókodba! Ezt egyszer kell megtenned az alkalmazásban, **illetve a jegyvásárlási felületen is**.
@@ -38,3 +42,7 @@ egy nyílt, a hivatalos klienstől független alternatív felületet biztosítso
 *! Az alkalmazás build flow-ja termuxra van optimalizálva, ezért gépen buildelve lehet configolni kell.*
 
 Az appot többféle AI ágens készítette *(Muse Spark 1.2, MiMo V2.5)*, OpenCode alatt, illetve többféle python könyvtár használatával készültek a grafikus elemek.
+
+## Letöltés
+[![Letöltés GitHubról](https://github.com/user-attachments/assets/2f40eb52-53cd-4964-91cb-7c07c53e814c)](https://github.com/domedav/MavJegyApp/releases)
+[![Letöltés Google Playről](https://github.com/user-attachments/assets/49aa20db-5fb5-46c9-9286-eb538177b3f1)](https://play.google.com/store/apps/details?id=com.domedav.mavjegy)
