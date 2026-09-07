@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tömegközlekedés – MÁV Jegy</title>
+<meta name="description" content="Trackermentes, offline jegyek, nagyítható jegykép — 1,9 MB. Független MÁV-jegy kliens Androidra.">
+<style>
+  :root { --bg: #F0F4F8; --ink: #282c34; --sub: #5a6b80; --accent: #1A73E8; --card: #ffffff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  header.hero { text-align: center; padding: 56px 20px 32px; }
+  header.hero img.banner { max-width: 100%; height: auto; border-radius: 18px; box-shadow: 0 12px 40px rgba(26,115,232,.18); }
+  header.hero h1 { font-size: 2.4rem; margin: 28px 0 8px; }
+  header.hero p.tag { color: var(--sub); font-size: 1.2rem; margin-bottom: 24px; }
+  .dl { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .dl img { width: 220px; height: auto; }
+  section { padding: 32px 0; }
+  section h2 { font-size: 1.6rem; margin-bottom: 18px; text-align: center; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border-radius: 16px; padding: 20px; box-shadow: 0 4px 16px rgba(20,30,50,.08); }
+  .card img { width: 40px; height: 40px; background: var(--accent); border-radius: 50%; padding: 7px; margin-bottom: 10px; }
+  .card h3 { font-size: 1.05rem; margin-bottom: 6px; }
+  .card p { color: var(--sub); font-size: .95rem; }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+  .shots img { width: 100%; height: auto; border-radius: 14px; box-shadow: 0 6px 22px rgba(20,30,50,.14); }
+  .why { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: 0 4px 16px rgba(20,30,50,.08); }
+  footer { text-align: center; color: var(--sub); font-size: .85rem; padding: 28px 20px 48px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <img class="banner" src="../tools/play_white/out/featureGraphic.png" alt="Tömegközlekedés – MÁV Jegy">
+    <h1>Tömegközlekedés</h1>
+    <p class="tag">Jegyeid egy helyen. Trackermentes, offline jegyek, nagyítható jegykép — 1,9 MB.</p>
+    <div class="dl">
+      <a href="https://github.com/domedav/MavJegyApp/releases"><img src="../tools/play_white/out/github_button.png" alt="Letöltés GitHubról"></a>
+      <a href="https://play.google.com/store/apps/details?id=com.domedav.mavjegy"><img src="../tools/play_white/out/googleplay_button.png" alt="Letöltés Google Playről"></a>
+    </div>
+  </header>
+
+  <section>
+    <h2>Funkciók</h2>
+    <div class="grid">
+      <div class="card">
+        <img src="../tools/play_white/icons/png/wifi-slash.png" alt="">
+        <h3>Offline jegyek</h3>
+        <p>Jegyeid és bérleteid akkor is elérhetők, akármerre utazol — menthetők, megoszthatók.</p>
+      </div>
+      <div class="card">
+        <img src="../tools/play_white/icons/png/ticket.png" alt="">
+        <h3>Egyszerű vásárlás</h3>
+        <p>Jegyeket és bérleteket könnyedén vásárolhatsz, egy kézzel is kezelhető felületen.</p>
+      </div>
+      <div class="card">
+        <img src="../tools/play_white/icons/png/push-pin.png" alt="">
+        <h3>Utazási hírek</h3>
+        <p>Kereshető, kitűzhető hírek — mindent egy appon belül intézhetsz utazás előtt és közben.</p>
+      </div>
+      <div class="card">
+        <img src="../tools/play_white/icons/png/magnifying-glass.png" alt="">
+        <h3>Állítható jegyméret</h3>
+        <p>Nagyítható jegykép: akkorára veszed, ahová a szkennernek kell — nincs bajlódás a buszon.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Képernyőképek</h2>
+    <div class="shots">
+      <img src="../tools/play_white/out/01_one_jegyek-page.png" alt="Jegyeid egy helyen" loading="lazy">
+      <img src="../tools/play_white/out/02_one_jegykep-full.png" alt="QR-kódos jegybemutatás" loading="lazy">
+      <img src="../tools/play_white/out/03_duo_login-register.png" alt="Könnyű kezdés" loading="lazy">
+      <img src="../tools/play_white/out/04_one_news-page.png" alt="Hírek neked" loading="lazy">
+      <img src="../tools/play_white/out/05_one_jegyek-page.png" alt="Utazz szabadon" loading="lazy">
+      <img src="../tools/play_white/out/06_one_jegykep-full.png" alt="Bérlet zsebben" loading="lazy">
+    </div>
+  </section>
+
+  <section>
+    <h2>Miért válts?</h2>
+    <div class="why">
+      <p>Ha eleged van abból, hogy a MÁV hivatalos alkalmazása lassú, illetve biztos akarsz lenni abban, hogy az alkalmazás minden frissítés után jól működjön, akkor ez az app neked lett kitalálva. Regisztrálj fiókot, vagy jelentkezz be a MÁV-fiókodba — egyszer az appban, illetve a jegyvásárlási felületen is.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Ez az alkalmazás a hivatalos MÁV alkalmazás visszafejtett, független alternatívája. Nem áll kapcsolatban a MÁV Zrt.-vel.</p>
+    <p>MIT licenc — <a href="https://github.com/domedav/MavJegyApp">GitHub</a></p>
+  </footer>
+
+</div>
+</body>
+</html>
