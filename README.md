@@ -7,8 +7,8 @@
 <img width="240" height="450" alt="04_one_news-page" src="https://github.com/user-attachments/assets/7c4fd8c3-2885-4093-9c2e-b405ad71245c" />
 
 ## Letöltés
-[![Letöltés GitHubról](https://github.com/user-attachments/assets/2f40eb52-53cd-4964-91cb-7c07c53e814c)](https://github.com/domedav/MavJegyApp/releases)
-[![Letöltés Google Playről](https://github.com/user-attachments/assets/49aa20db-5fb5-46c9-9286-eb538177b3f1)](https://play.google.com/store/apps/details?id=com.domedav.mavjegy)
+<a href="https://github.com/domedav/MavJegyApp/releases"><img width="240" alt="Letöltés GitHubról" src="https://github.com/user-attachments/assets/2f40eb52-53cd-4964-91cb-7c07c53e814c" /></a>
+<a href="https://play.google.com/store/apps/details?id=com.domedav.mavjegy"><img width="240" alt="Letöltés Google Playről" src="https://github.com/user-attachments/assets/49aa20db-5fb5-46c9-9286-eb538177b3f1" /></a>
 
 ## Használat
 
@@ -44,5 +44,5 @@ egy nyílt, a hivatalos klienstől független alternatív felületet biztosítso
 Az appot többféle AI ágens készítette *(Muse Spark 1.2, MiMo V2.5)*, OpenCode alatt, illetve többféle python könyvtár használatával készültek a grafikus elemek.
 
 ## Letöltés
-[![Letöltés GitHubról](https://github.com/user-attachments/assets/2f40eb52-53cd-4964-91cb-7c07c53e814c)](https://github.com/domedav/MavJegyApp/releases)
-[![Letöltés Google Playről](https://github.com/user-attachments/assets/49aa20db-5fb5-46c9-9286-eb538177b3f1)](https://play.google.com/store/apps/details?id=com.domedav.mavjegy)
+<a href="https://github.com/domedav/MavJegyApp/releases"><img width="240" alt="Letöltés GitHubról" src="https://github.com/user-attachments/assets/2f40eb52-53cd-4964-91cb-7c07c53e814c" /></a>
+<a href="https://play.google.com/store/apps/details?id=com.domedav.mavjegy"><img width="240" alt="Letöltés Google Playről" src="https://github.com/user-attachments/assets/49aa20db-5fb5-46c9-9286-eb538177b3f1" /></a>
