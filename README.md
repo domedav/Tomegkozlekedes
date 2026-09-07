@@ -41,7 +41,7 @@ egy nyílt, a hivatalos klienstől független alternatív felületet biztosítso
 ## Technikai információ
 *! Az alkalmazás build flow-ja termuxra van optimalizálva, ezért gépen buildelve lehet configolni kell.*
 
-Az appot többféle AI ágens készítette *(Muse Spark 1.2, MiMo V2.5)*, OpenCode alatt, illetve többféle python könyvtár használatával készültek a grafikus elemek.
+Az appot többféle AI ágens készítette *(Muse Spark 1.3, MiMo V2.5, Hy3)*, OpenCode alatt, illetve többféle python könyvtár használatával készültek a grafikus elemek.
 
 ## Letöltés
 <a href="https://github.com/domedav/MavJegyApp/releases"><img width="240" alt="Letöltés GitHubról" src="https://github.com/user-attachments/assets/2f40eb52-53cd-4964-91cb-7c07c53e814c" /></a>
