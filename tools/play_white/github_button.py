@@ -51,7 +51,8 @@ def make_button(text, icon_name, out_name):
     d.ellipse([cx, cy - dot // 2, cx + dot, cy + dot // 2], fill=ACCENT)
     ic = phosphor(icon_name, 120)
     btn.paste(ic, (cx + dot // 2 - 60, cy - 60), ic)
-    d.text((cx + dot + gap, cy - bh // 2 - 8), text, font=fb, fill=(25, 30, 45))
+    # fuggolegesen centrezve (lm anchor + kis optikai korrekcio az ekezetek miatt)
+    d.text((cx + dot + gap, cy + 8), text, font=fb, fill=(25, 30, 45), anchor="lm")
 
     p = HERE / "out" / out_name
     btn.save(p)
