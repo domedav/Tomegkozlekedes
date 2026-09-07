@@ -1,10 +1,7 @@
 # Tömegközlekedés
 <img width="1024" height="500" alt="featureGraphic" src="tools/play_white/out/featureGraphic.png" />
 
-<img width="240" height="450" alt="01_one_jegyek-page" src="tools/play_white/out/01_one_jegyek-page.png" />
-<img width="240" height="450" alt="02_one_jegykep-full" src="tools/play_white/out/02_one_jegykep-full.png" />
-<img width="240" height="450" alt="03_duo_login-register" src="tools/play_white/out/03_duo_login-register.png" />
-<img width="240" height="450" alt="04_one_news-page" src="tools/play_white/out/04_one_news-page.png" />
+<img width="240" height="450" alt="01_one_jegyek-page" src="tools/play_white/out/01_one_jegyek-page.png" /><img width="240" height="450" alt="02_one_jegykep-full" src="tools/play_white/out/02_one_jegykep-full.png" /><img width="240" height="450" alt="03_duo_login-register" src="tools/play_white/out/03_duo_login-register.png" /><img width="240" height="450" alt="04_one_news-page" src="tools/play_white/out/04_one_news-page.png" />
 
 ## Letöltés
 <a href="https://github.com/domedav/MavJegyApp/releases"><img width="240" alt="Letöltés GitHubról" src="tools/play_white/out/github_button.png" /></a>
