@@ -4,7 +4,7 @@
 <img width="240" height="450" alt="01_one_jegyek-page" src="tools/play_white/out/01_one_jegyek-page.png" /> <img width="240" height="450" alt="02_one_jegykep-full" src="tools/play_white/out/02_one_jegykep-full.png" /> <img width="240" height="450" alt="03_duo_login-register" src="tools/play_white/out/03_duo_login-register.png" /> <img width="240" height="450" alt="04_one_news-page" src="tools/play_white/out/04_one_news-page.png" />
 
 ## Letöltés
-<a href="https://github.com/domedav/MavJegyApp/releases"><img width="240" alt="Letöltés GitHubról" src="tools/play_white/out/github_button.png" /></a>
+<a href="https://github.com/domedav/Tomegkozlekedes/releases"><img width="240" alt="Letöltés GitHubról" src="tools/play_white/out/github_button.png" /></a>
 <a href="https://play.google.com/store/apps/details?id=com.domedav.mavjegy"><img width="240" alt="Letöltés Google Playről" src="tools/play_white/out/googleplay_button.png" /></a>
 
 ## Használat
@@ -41,5 +41,5 @@ egy nyílt, a hivatalos klienstől független alternatív felületet biztosítso
 Az appot többféle AI ágens készítette *(Muse Spark 1.3, MiMo V2.5, Hy3)*, OpenCode alatt, illetve többféle python könyvtár használatával készültek a grafikus elemek.
 
 ## Letöltés
-<a href="https://github.com/domedav/MavJegyApp/releases"><img width="240" alt="Letöltés GitHubról" src="tools/play_white/out/github_button.png" /></a>
+<a href="https://github.com/domedav/Tomegkozlekedes/releases"><img width="240" alt="Letöltés GitHubról" src="tools/play_white/out/github_button.png" /></a>
 <a href="https://play.google.com/store/apps/details?id=com.domedav.mavjegy"><img width="240" alt="Letöltés Google Playről" src="tools/play_white/out/googleplay_button.png" /></a>
