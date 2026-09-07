@@ -1,4 +1,10 @@
 # Tömegközlekedés
+<img width="1024" height="500" alt="featureGraphic" src="https://github.com/user-attachments/assets/0d818522-379a-464a-8677-fc66e92027db" />
+
+<img width="240" height="450" alt="01_one_jegyek-page" src="https://github.com/user-attachments/assets/421da8bb-95b1-4627-a9e5-85251ac1e422" />
+<img width="240" height="450" alt="02_one_jegykep-full" src="https://github.com/user-attachments/assets/1e270ead-25f4-4358-9694-306b19d637e8" />
+<img width="240" height="450" alt="03_duo_login-register" src="https://github.com/user-attachments/assets/09e90aa9-b452-4cec-9a0f-59c8a8cbc839" />
+<img width="240" height="450" alt="04_one_news-page" src="https://github.com/user-attachments/assets/7c4fd8c3-2885-4093-9c2e-b405ad71245c" />
 
 ## Használat
 
