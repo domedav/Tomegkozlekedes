@@ -10,7 +10,7 @@
 ## Használat
 
 Regisztrálj egy fiókot, vagy jelentkezz be a MÁV-fiókodba! Ezt egyszer kell megtenned az alkalmazásban, **és a jegyvásárlási felületen is**.
-Az alkalmazás jobb és bal kézzel is könnyen kezelhető.
+Az alkalmazás egykézzel is könnyen kezelhető.
 
 ## Funkciók
 
