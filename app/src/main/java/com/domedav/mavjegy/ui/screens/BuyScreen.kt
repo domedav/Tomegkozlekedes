@@ -3,9 +3,16 @@ package com.domedav.mavjegy.ui.screens
 import com.domedav.mavjegy.R
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.webkit.CookieManager
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.domedav.mavjegy.util.isOnline
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,6 +66,28 @@ fun BuyScreen(webViewState: MutableState<WebView?>) {
     var online by remember { mutableStateOf(isOnline(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    // WebView <input type="file"> -> rendszer fájlválasztó híd
+    var pendingFileCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val cb = pendingFileCallback
+        pendingFileCallback = null
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uris = mutableListOf<Uri>()
+            result.data?.clipData?.let { clip ->
+                for (i in 0 until clip.itemCount) {
+                    clip.getItemAt(i).uri?.let { uris.add(it) }
+                }
+            }
+            result.data?.data?.let { uris.add(it) }
+            cb?.onReceiveValue(uris.toTypedArray())
+        } else {
+            // Mégse: kötelező null, különben az oldal örökre vár
+            cb?.onReceiveValue(null)
+        }
+    }
+
     // Első betöltés: min 450ms + oldal betöltése. Tab-váltás: azonnal.
     val isFirstLoad = remember { webViewState.value == null }
     var minDelayDone by remember { mutableStateOf(false) }
@@ -100,6 +129,8 @@ fun BuyScreen(webViewState: MutableState<WebView?>) {
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            pendingFileCallback?.onReceiveValue(null)
+            pendingFileCallback = null
         }
     }
 
@@ -174,6 +205,31 @@ fun BuyScreen(webViewState: MutableState<WebView?>) {
                                         WebViewSession.restore(context, this@apply)
                                     }
                                     pageLoaded = true
+                                }
+                            }
+                            webChromeClient = object : WebChromeClient() {
+                                override fun onShowFileChooser(
+                                    view: WebView?,
+                                    filePathCallback: ValueCallback<Array<Uri>>,
+                                    fileChooserParams: FileChooserParams
+                                ): Boolean {
+                                    pendingFileCallback?.onReceiveValue(null)
+                                    pendingFileCallback = filePathCallback
+                                    runCatching {
+                                        filePickerLauncher.launch(
+                                            fileChooserParams.createIntent().apply {
+                                                if (fileChooserParams.mode ==
+                                                    FileChooserParams.MODE_OPEN_MULTIPLE
+                                                ) {
+                                                    putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                                                }
+                                            }
+                                        )
+                                    }.onFailure {
+                                        pendingFileCallback = null
+                                        filePathCallback.onReceiveValue(null)
+                                    }
+                                    return true
                                 }
                             }
                             loadUrl(BUY_URL)

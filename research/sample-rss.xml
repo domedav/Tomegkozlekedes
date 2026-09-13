@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xml:base="https://www.mavcsoport.hu" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+ <title>MÁV-csoport</title>
+ <link>https://www.mavcsoport.hu</link>
+ <description></description>
+ <language>hu</language>
+ <item>
+  <title>Fennakadás a Budapest-Hatvan-Miskolc vonalon</title>
+  <link>https://www.mavcsoport.hu/mavinform/fennakadas-budapest-hatvan-miskolc-vonalon-09-03</link>
+  <description>&lt;div class="field-body"&gt;&lt;p&gt;20:55-től megindulhatott a közlekedés, érintett járataink jelentős késéssel továbbközlekedtek.&lt;/p&gt;&lt;hr&gt;&lt;p&gt;&lt;em&gt;Előzmény:&lt;/em&gt;&lt;/p&gt;&lt;p&gt;Kál-Kápolnánál hatósági intézkedés miatt nem közlekedhetnek a vonatok&lt;/p&gt;&lt;/div&gt;</description>
+  <pubDate>Thu, 03 Sep 2026 18:37:00 +0000</pubDate>
+  <dc:creator>radics.levente.ciprian</dc:creator>
+  <guid isPermaLink="false">204392 at https://www.mavcsoport.hu</guid>
+ </item>
+ <item>
+  <title>Metropolitan EuroCity, Railjet késések</title>
+  <link>https://www.mavcsoport.hu/mavinform/metropolitan-eurocity-railjet-kesesek</link>
+  <description>&lt;div class="field-body"&gt;&lt;p&gt;A Prága felől érkező, Szobról 15:38-kor a Nyugati pályaudvarra induló Metropolitan RailJet (RJ 277) várhatóan 40 perces késéssel érkezik az országba.&lt;/p&gt;&lt;/div&gt;</description>
+  <pubDate>Thu, 03 Sep 2026 13:29:00 +0000</pubDate>
+  <dc:creator>radics.levente.ciprian</dc:creator>
+  <guid isPermaLink="false">204380 at https://www.mavcsoport.hu</guid>
+ </item>
+ <item>
+  <title>Pótlóbusz volt a dél-balatoni vonalon</title>
+  <link>https://www.mavcsoport.hu/mavinform/potlobusz-del-balatoni-vonalon-09-02</link>
+  <description>&lt;div class="field-body"&gt;&lt;div class="yellowbox"&gt;22:35-től ismét lehetséges a közlekedés&lt;/div&gt;&lt;hr&gt;&lt;p&gt;&lt;em&gt;Előzmény:&lt;/em&gt;&lt;/p&gt;&lt;div class="bluebox"&gt;Baleseti helyszínelés miatt pótlóbuszos közlekedésre lehet számítani a dél-balatoni vonalon.&lt;/div&gt;&lt;/div&gt;</description>
+  <pubDate>Wed, 02 Sep 2026 19:45:00 +0000</pubDate>
+  <dc:creator>radics.levente.ciprian</dc:creator>
+  <guid isPermaLink="false">204331 at https://www.mavcsoport.hu</guid>
+ </item>
+ <item>
+  <title>S74-es pótlóbuszok szerdán</title>
+  <link>https://www.mavcsoport.hu/mavinform/s74-es-potlobuszok-szerdan</link>
+  <description>&lt;div class="field-body"&gt;&lt;p&gt;Pótlóbusz közlekedik: a Lábatlanból 13:34-kor, 15:34-kor, 17:34-kor Esztergomba induló S74-es helyett.&lt;/p&gt;&lt;/div&gt;</description>
+  <pubDate>Wed, 02 Sep 2026 12:04:54 +0000</pubDate>
+  <dc:creator>radics.levente.ciprian</dc:creator>
+  <guid isPermaLink="false">204290 at https://www.mavcsoport.hu</guid>
+ </item>
+ <item>
+  <title>Családdal a vonaton</title>
+  <link>https://www.mavcsoport.hu/node/159987</link>
+  <description>&lt;div class="field-lead"&gt;Nincs is annál jobb, mint amikor együtt utazik az egész család.&lt;/div&gt;</description>
+  <pubDate>Wed, 02 Sep 2026 07:52:00 +0000</pubDate>
+  <dc:creator>tothd</dc:creator>
+  <guid isPermaLink="false">159987 at https://www.mavcsoport.hu</guid>
+ </item>
+</channel>
+</rss>

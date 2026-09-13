@@ -94,11 +94,19 @@ private fun String?.isRealName(): Boolean = !isNullOrBlank() && this != "null"
 private fun ValiditySubtitle(purchase: Purchase, isPass: Boolean) {
     val now = LocalDateTime.now()
     val to = parseIso(purchase.validTo)
+    val notYet = parseIso(purchase.validFrom)?.isAfter(now) == true
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        if (isPass) {
+        if (notYet) {
+            // Még nem érvényes — jegyre és bérletre is
+            Text(
+                text = stringResource(R.string.not_yet_valid),
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1
+            )
+        } else if (isPass) {
             // Bérlet: hátralévő napok
             if (to != null && !to.isBefore(now)) {
                 val days = ChronoUnit.DAYS.between(now.toLocalDate(), to.toLocalDate().plusDays(1)).coerceAtLeast(0)
@@ -262,7 +270,8 @@ fun TicketsScreen(
             val statusOk = p.isValidTicket
             val to = parseIso(p.validTo)
             val expired = to != null && to.isBefore(now)
-            if (keepExpired) statusOk || expired else statusOk && !expired
+            val notYet = parseIso(p.validFrom)?.isAfter(now) == true
+            if (keepExpired) statusOk || expired || notYet else (statusOk && !expired) || notYet
         }
     }
 
@@ -521,6 +530,7 @@ private fun PurchaseCard(
     val isPass = purchase.isPassTicket()
     val now = LocalDateTime.now()
     val isExpired = parseIso(purchase.validTo)?.isBefore(now) ?: false
+    val isNotYet = parseIso(purchase.validFrom)?.isAfter(now) == true
     val priceBadgeColor = if (isExpired) MaterialTheme.colorScheme.errorContainer
         else if (isPass) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
     val priceTextColor = if (isExpired) MaterialTheme.colorScheme.onErrorContainer
@@ -602,6 +612,7 @@ private fun PurchaseCard(
         ) {
             Text(
                 text = if (isExpired) stringResource(R.string.detail_expired)
+                else if (isNotYet) stringResource(R.string.not_yet_valid)
                 else if (purchase.currency == "HUF") stringResource(R.string.price_ft, purchase.amount)
                 else stringResource(R.string.price_curr, purchase.amount, purchase.currency),
                 style = MaterialTheme.typography.labelMedium,

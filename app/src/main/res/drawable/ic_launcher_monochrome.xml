@@ -7,10 +7,9 @@
             android:pathData="M342,390H682A50,50 0 0 1 732,440V478A34,34 0 0 0 732,546V584A50,50 0 0 1 682,634H342A50,50 0 0 1 292,584V546A34,34 0 0 0 292,478V440A50,50 0 0 1 342,390Z"
             android:strokeColor="#FFFFFF" android:strokeWidth="26"
             android:strokeLineJoin="round" android:fillColor="#00000000"/>
-        <!-- 5 perforacios vonalka a kozeptengelyen -->
+        <!-- 5 perforacios potty a kozeptengelyen (mint a foregroundban) -->
         <path
-            android:pathData="M384,512H416M440,512H472M496,512H528M552,512H584M608,512H640"
-            android:strokeColor="#FFFFFF" android:strokeWidth="24"
-            android:strokeLineCap="round" android:fillColor="#00000000"/>
+            android:pathData="M402,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0ZM457,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0ZM512,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0ZM567,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0ZM622,512m-12,0a12,12 0 1 0 24,0a12,12 0 1 0 -24,0Z"
+            android:fillColor="#FFFFFF"/>
     </group>
 </vector>

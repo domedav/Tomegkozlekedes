@@ -783,6 +783,7 @@ private fun DaysRemainingBadge(purchase: Purchase) {
     val now = LocalDateTime.now()
     val days = to?.let { ChronoUnit.DAYS.between(now.toLocalDate(), it.toLocalDate().plusDays(1)).toInt() }
     val expiredNow = days == null || days <= 0
+    val notYetNow = !expiredNow && parseDate(purchase.validFrom)?.isAfter(now) == true
 
     val container = if (expiredNow) MaterialTheme.colorScheme.errorContainer
     else MaterialTheme.colorScheme.primaryContainer
@@ -805,7 +806,9 @@ private fun DaysRemainingBadge(purchase: Purchase) {
                 modifier = Modifier.size(16.dp)
             )
             Text(
-                text = if (expiredNow) stringResource(R.string.detail_expired) else stringResource(R.string.fmt_days, days),
+                text = if (expiredNow) stringResource(R.string.detail_expired)
+                else if (notYetNow) stringResource(R.string.not_yet_valid)
+                else stringResource(R.string.fmt_days, days),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = content

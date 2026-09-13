@@ -51,6 +51,7 @@
     <string name="share_title">Jegy megosztása</string>
     <string name="detail_img_unavailable">A jegykép nem érhető el.</string>
     <string name="detail_expired">Lejárt</string>
+    <string name="not_yet_valid">Még nem érvényes</string>
     <string name="owner_photo">Utas fényképe</string>
     <string name="owner_photo_zoom">Utas fényképe nagyítva</string>
     <string name="row_pass_id">Bérletigazolvány azonosítója</string>
