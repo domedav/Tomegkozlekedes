@@ -96,6 +96,39 @@ class TokenStore(private val context: Context) {
 
     fun hasToken(): Boolean = !getToken().isNullOrBlank()
 
+    // --- PAPI auth (mvapi.mav.hu) ---
+    fun getAuthToken(): String? = prefs.getString(KEY_AUTH_TOKEN, null)
+
+    fun setAuthToken(token: String) {
+        prefs.edit().putString(KEY_AUTH_TOKEN, token).apply()
+    }
+
+    fun hasAuthToken(): Boolean = !getAuthToken().isNullOrBlank()
+
+    fun getUserGuid(): String? = prefs.getString(KEY_USER_GUID, null)
+
+    fun setUserGuid(guid: String) {
+        prefs.edit().putString(KEY_USER_GUID, guid).apply()
+    }
+
+    fun getOrCreateDeviceInstance(): String {
+        var v = prefs.getString(KEY_DEVICE_INSTANCE, null)
+        if (v.isNullOrBlank()) {
+            v = java.util.UUID.randomUUID().toString()
+            prefs.edit().putString(KEY_DEVICE_INSTANCE, v).apply()
+        }
+        return v!!
+    }
+
+    fun getOrCreatePartnerSession(): String {
+        var v = prefs.getString(KEY_PARTNER_SESSION, null)
+        if (v.isNullOrBlank()) {
+            v = java.util.UUID.randomUUID().toString()
+            prefs.edit().putString(KEY_PARTNER_SESSION, v).apply()
+        }
+        return v!!
+    }
+
     fun hasCredentials(): Boolean =
         !getEmail().isNullOrBlank() && !getPassword().isNullOrBlank()
 
@@ -116,5 +149,9 @@ class TokenStore(private val context: Context) {
         private const val KEY_DEMO = "demoMode"
         private const val KEY_VIM_TOKEN = "vimToken"
         private const val KEY_VIM_EXPIRY = "vimTokenExpiry"
+        private const val KEY_AUTH_TOKEN = "authToken"
+        private const val KEY_USER_GUID = "userGuid"
+        private const val KEY_DEVICE_INSTANCE = "deviceInstance"
+        private const val KEY_PARTNER_SESSION = "partnerSession"
     }
 }

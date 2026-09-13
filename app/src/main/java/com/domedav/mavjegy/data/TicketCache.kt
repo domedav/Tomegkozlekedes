@@ -20,6 +20,7 @@ data class CachedTicketDetails(
     val ajanlatNev: String? = null,
     val ervenyessegKezdete: String? = null,
     val ervenyessegVege: String? = null,
+    val passNumber: String? = null,
     val fetchedAt: Long = 0L
 )
 
@@ -96,6 +97,7 @@ object TicketCache {
                     ajanlatNev = details.ajanlatNev,
                     ervenyessegKezdete = details.ervenyessegKezdete,
                     ervenyessegVege = details.ervenyessegVege,
+                    passNumber = details.passNumber,
                     fetchedAt = System.currentTimeMillis()
                 )
             ))
@@ -118,7 +120,8 @@ object TicketCache {
                 ticketData = TicketData(c.serializedTicketData, c.jegySorszam, c.bizonylatTechnikaiAzonosito),
                 ajanlatNev = c.ajanlatNev,
                 ervenyessegKezdete = c.ervenyessegKezdete,
-                ervenyessegVege = c.ervenyessegVege
+                ervenyessegVege = c.ervenyessegVege,
+                passNumber = c.passNumber
             )
         } catch (_: Exception) {
             try { file(context, purchaseId).delete() } catch (_: Exception) {}

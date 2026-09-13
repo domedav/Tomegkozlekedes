@@ -341,7 +341,12 @@ fun TicketDetailScreen(
                                 }.getOrNull()
                             }
                         }
-                        if (bmp != null) serverImageBitmap = bmp
+                        if (bmp != null) {
+                            serverImageBitmap = bmp
+                            // PAPI-ban nincs serialized-forrás, a szerverkép az elsődleges:
+                            // ha megjött, mutassuk (showServerImage máshol már nem tud true lenni).
+                            showServerImage = true
+                        }
                         if (!result?.barcodeText.isNullOrBlank()) {
                             serverBarcodeText = result!!.barcodeText
                         }
@@ -356,11 +361,10 @@ fun TicketDetailScreen(
                     }
                 }
 
-                // Első nyitásra háttérben letölti + MENTI a jegyképet (utána offline is megvan)
-                LaunchedEffect(purchase.id, serialized) {
-                    if (!serialized.isNullOrBlank()) {
-                        requestServerJegyKep()
-                    }
+                // Első nyitásra háttérben letölti + MENTI a jegyképet (utána offline is megvan).
+                // PAPI-ban nincs serializedTicketData, ezért nem arra várunk: mindig indul.
+                LaunchedEffect(purchase.id) {
+                    requestServerJegyKep()
                 }
 
                 LaunchedEffect(showServerImage) {
@@ -852,6 +856,11 @@ private fun IconValueRow(
 
 private fun parseDate(iso: String?): LocalDateTime? {
     if (iso.isNullOrBlank()) return null
+    // PAPI: 7 tizedes + Z -> Instant kezeli.
+    runCatching {
+        return java.time.Instant.parse(iso.trim())
+            .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+    }
     val formats = listOf(
         "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX",
         "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd"

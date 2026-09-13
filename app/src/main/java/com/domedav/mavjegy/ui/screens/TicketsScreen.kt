@@ -141,6 +141,10 @@ private fun ValiditySubtitle(purchase: Purchase, isPass: Boolean) {
 
 private fun parseIso(iso: String?): LocalDateTime? {
     if (iso.isNullOrBlank()) return null
+    // PAPI: 7 tizedes + Z (pl. 2026-09-09T22:00:00.0000000Z) -> Instant kezeli.
+    runCatching {
+        return java.time.Instant.parse(iso.trim()).atZone(ZoneId.systemDefault()).toLocalDateTime()
+    }
     for (fmt in isoDateTimeFormatters) {
         try {
             val parsed = fmt.parse(iso)
@@ -171,6 +175,7 @@ private val isoDateTimeFormatters = listOf(
 
 internal fun formatDate(iso: String?, fallback: String): String {
     if (iso.isNullOrBlank()) return fallback
+    parseIso(iso)?.let { return huDateTime.format(it) }
     return try {
         var formatted: String? = null
         for (fmt in isoDateTimeFormatters) {

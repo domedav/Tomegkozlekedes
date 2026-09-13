@@ -196,7 +196,8 @@ internal object DemoData {
             ),
             ajanlatNev = p.name,
             ervenyessegKezdete = p.validFrom,
-            ervenyessegVege = p.validTo
+            ervenyessegVege = p.validTo,
+            passNumber = px.azonosito
         )
     }
 
