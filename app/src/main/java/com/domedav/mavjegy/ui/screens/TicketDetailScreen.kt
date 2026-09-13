@@ -1,4 +1,4 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 
 package com.domedav.mavjegy.ui.screens
 
@@ -14,11 +14,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -547,8 +549,13 @@ fun TicketDetailScreen(
                                         contentScale = ContentScale.FillWidth,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .pointerInput(simg, serverBarcodeText) {
-                                                detectTapGestures(onLongPress = {
+                                            // Nincs klipp, nincs tap-indikátor: zoom/pan közben a kép
+                                            // nem vágódhat le és nem villan. Long-press: eredeti <-> Aztec.
+                                            .combinedClickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null,
+                                                onClick = {},
+                                                onLongClick = {
                                                     if (showEncodedAztec) {
                                                         showEncodedAztec = false
                                                         com.domedav.mavjegy.util.ViewerPrefs.setAztecMode(
@@ -572,8 +579,8 @@ fun TicketDetailScreen(
                                                             }
                                                         }
                                                     }
-                                                })
-                                            }
+                                                }
+                                            )
                                             .graphicsLayer {
                                                 scaleX = scale
                                                 scaleY = scale

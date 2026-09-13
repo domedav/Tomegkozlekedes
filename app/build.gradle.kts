@@ -20,9 +20,9 @@ android {
         applicationId = "com.domedav.mavjegy"
         minSdk = 26
         targetSdk = 36
-        // versionCode séma: 2 karakter / verziószám -> 2.1.0 = 21 00 00 = 210000
-        versionCode = 210000
-        versionName = "2.1.0"
+        // versionCode séma: 2 karakter / verziószám -> 2.1.2 = 21 01 02 = 210102
+        versionCode = 210102
+        versionName = "2.1.2"
     }
 
     signingConfigs {

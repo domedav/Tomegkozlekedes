@@ -541,8 +541,9 @@ private fun PurchaseCard(
     val priceTextColor = if (isExpired) MaterialTheme.colorScheme.onErrorContainer
         else if (isPass) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onTertiary
     Box(modifier = modifier.fillMaxWidth()) {
+        val cardShape = if (isValid) RoundedCornerShape(28.dp) else RoundedCornerShape(16.dp)
         Card(
-            shape = if (isValid) RoundedCornerShape(28.dp) else RoundedCornerShape(16.dp),
+            shape = cardShape,
             colors = CardDefaults.cardColors(containerColor = containerColor),
             border = if (!isValid) androidx.compose.foundation.BorderStroke(
                 1.dp,
@@ -551,6 +552,8 @@ private fun PurchaseCard(
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             modifier = Modifier
                 .fillMaxWidth()
+                // Ripple is a kártyaformához klippelve (kerekített sarkok).
+                .clip(cardShape)
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {

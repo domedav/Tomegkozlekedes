@@ -60,6 +60,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -512,12 +513,15 @@ private fun MavinformCard(
                    else categoryIconTint(item.category)
 
     Box(modifier = modifier.fillMaxWidth()) {
+        val cardShape = RoundedCornerShape(28.dp)
         Card(
-            shape = RoundedCornerShape(28.dp),
+            shape = cardShape,
             colors = CardDefaults.cardColors(containerColor = containerColor),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             modifier = Modifier
                 .fillMaxWidth()
+                // Ripple is a kártyaformához klippelve (kerekített sarkok).
+                .clip(cardShape)
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
         ) {
             Row(
