@@ -48,39 +48,11 @@ class TokenStore(private val context: Context) {
             .apply()
     }
 
-    fun getUserId(): String? = prefs.getString(KEY_USER_ID, null)
-
-    fun setUserId(id: String) {
-        prefs.edit().putString(KEY_USER_ID, id).apply()
-    }
-
-    fun getUaid(): String = prefs.getString(KEY_UAID, null) ?: ""
-
-    fun hasUaid(): Boolean = !getUaid().isNullOrBlank()
-
-    fun setUaid(id: String) {
-        prefs.edit().putString(KEY_UAID, id).apply()
-    }
-
     // --- Demo mód (Demo / Demo belépés) ---
     fun isDemo(): Boolean = prefs.getBoolean(KEY_DEMO, false)
 
     fun setDemo(demo: Boolean) {
         prefs.edit().putBoolean(KEY_DEMO, demo).apply()
-    }
-
-    // --- VIM (MobileServiceS) session – GetJegykep-hoz ---
-    fun getVimToken(): String? = prefs.getString(KEY_VIM_TOKEN, null)
-
-    fun setVimToken(token: String) {
-        prefs.edit().putString(KEY_VIM_TOKEN, token).apply()
-    }
-
-    /** VIM token lejárata, epoch millis; 0 = ismeretlen */
-    fun getVimTokenExpiry(): Long = prefs.getLong(KEY_VIM_EXPIRY, 0L)
-
-    fun setVimTokenExpiry(expiryMillis: Long) {
-        prefs.edit().putLong(KEY_VIM_EXPIRY, expiryMillis).apply()
     }
 
     /** Utolsó sikeres login időpontja, epoch millis; 0 = ismeretlen (régi telepítés) */
@@ -144,11 +116,7 @@ class TokenStore(private val context: Context) {
         private const val KEY_LOGIN_TIME = "loginTime"
         private const val KEY_EMAIL = "email"
         private const val KEY_PASSWORD = "password"
-        private const val KEY_USER_ID = "felhasznaloAzonosito"
-        private const val KEY_UAID = "uaid"
         private const val KEY_DEMO = "demoMode"
-        private const val KEY_VIM_TOKEN = "vimToken"
-        private const val KEY_VIM_EXPIRY = "vimTokenExpiry"
         private const val KEY_AUTH_TOKEN = "authToken"
         private const val KEY_USER_GUID = "userGuid"
         private const val KEY_DEVICE_INSTANCE = "deviceInstance"

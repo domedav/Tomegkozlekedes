@@ -36,8 +36,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.ConfirmationNumber
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Schedule
@@ -64,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -141,8 +142,9 @@ fun TicketDetailScreen(
     var barcodeBitmap by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
     var generatingBarcode by remember { mutableStateOf(true) }
 
-    var owner by remember { mutableStateOf<TicketOwner?>(null) }
-    var photoBitmap by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    var owner by remember(purchase.id) { mutableStateOf<TicketOwner?>(null) }
+    var photoBitmap by remember(purchase.id) { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    var isLoadingOwner by remember(purchase.id) { mutableStateOf(false) }
 
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val isPass = purchase.isPassTicket()
@@ -277,7 +279,7 @@ fun TicketDetailScreen(
                     } ?: topAnchoredOffsetY
                 }
 
-                LaunchedEffect(serialized) {
+                LaunchedEffect(purchase.id, fetchTrigger) {
                     val decoded = if (serialized.isNullOrBlank()) null
                     else withContext(Dispatchers.Default) {
                         runCatching { TicketDecoder.decodeSerialized(serialized) }.getOrNull()
@@ -287,13 +289,38 @@ fun TicketDetailScreen(
                         owner = o
                         photoBitmap = decodePhoto(o.photoBase64)
                     } else {
-                        // Bérlet fallback: tulajdonos a HPT (bérletes utas) adatokból
-                        owner = null
-                        photoBitmap = null
-                        val po = runCatching { api.getPassOwnerData(context) }.getOrNull()
-                        po?.let {
-                            owner = TicketOwner(it.fullName, it.birthDate, null, it.photoBase64, it.azonosito)
-                            photoBitmap = decodePhoto(it.photoBase64)
+                        // Bérlet fallback: tulajdonos a HPT (bérletes utas) adatokból.
+                        // Előbb azonnali diszk-cache, aztán hálózat; közben loader.
+                        isLoadingOwner = true
+                        try {
+                            val cached = withContext(Dispatchers.IO) {
+                                runCatching {
+                                    com.domedav.mavjegy.data.OfflineStore.loadPassOwner(context, "global")
+                                }.getOrNull()
+                            }
+                            cached?.let {
+                                owner = TicketOwner(it.fullName, it.birthDate, null, it.photoBase64, it.azonosito)
+                                photoBitmap = decodePhoto(it.photoBase64)
+                            }
+                            if (owner == null || photoBitmap == null) {
+                                // Cache megvan de fotó nincs (vagy semmi): hálózat.
+                                // A cache-elt nevet megtartjuk, csak a fotót frissítjük.
+                                val keepName = owner
+                                photoBitmap = null
+                                val po = runCatching { api.getPassOwnerData(context) }.getOrNull()
+                                po?.let {
+                                    owner = TicketOwner(
+                                        it.fullName ?: keepName?.name,
+                                        it.birthDate ?: keepName?.birthDate,
+                                        keepName?.passengerType,
+                                        it.photoBase64 ?: keepName?.photoBase64,
+                                        it.azonosito ?: keepName?.azonosito
+                                    )
+                                    photoBitmap = decodePhoto(owner?.photoBase64)
+                                }
+                            }
+                        } finally {
+                            isLoadingOwner = false
                         }
                     }
                 }
@@ -314,6 +341,43 @@ fun TicketDetailScreen(
                 var serverBarcodeText by remember(purchase.id) { mutableStateOf<String?>(null) }
                 var serverImageBitmap by remember(purchase.id) {
                     mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null)
+                }
+                // Long-press átváltás: eredeti szerverkép <-> újrarenderelt Aztec
+                // (ISO-8859-1, bájt-hű az eredeti kódhoz). A módot jegyképenként
+                // megjegyezzük (ViewerPrefs).
+                var showEncodedAztec by remember(purchase.id) {
+                    mutableStateOf(
+                        com.domedav.mavjegy.util.ViewerPrefs.isAztecMode(context, purchase.id)
+                    )
+                }
+                var encodedAztecBitmap by remember(purchase.id) {
+                    mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null)
+                }
+
+                /** Saját Aztec építése + 1:1 önellenőrzés (visszafejtve == bemenet). */
+                fun buildEncodedAztec(text: String, onDone: (Boolean) -> Unit) {
+                    scope.launch(Dispatchers.Default) {
+                        val ok = runCatching {
+                            val bmp = BarcodeGenerator.generate(
+                                text,
+                                BarcodeGenerator.Type.AZTEC,
+                                barcodeTargetPx,
+                                barcodeTargetPx
+                            )
+                            // Önellenőrzés: a generált kód visszafejtése ugyanazt
+                            // a tartalmat kell adja (különben nem elfogadható).
+                            val back = com.domedav.mavjegy.util.BarcodeImageDecoder.decode(
+                                bmp.asAndroidBitmap()
+                            )
+                            if (back == text) {
+                                encodedAztecBitmap = bmp
+                                true
+                            } else {
+                                false
+                            }
+                        }.getOrDefault(false)
+                        onDone(ok)
+                    }
                 }
                 var loadingServerImage by remember(purchase.id) { mutableStateOf(false) }
                 var showServerImage by remember(purchase.id) { mutableStateOf(SettingsStore.getDetailPreferServerImage(context)) }
@@ -369,6 +433,21 @@ fun TicketDetailScreen(
 
                 LaunchedEffect(showServerImage) {
                     if (showServerImage && serverImageBitmap == null) requestServerJegyKep()
+                }
+
+                // Megjegyzett Aztec-mód: nyitáskor újraépítjük, ha van dekódolt szöveg.
+                LaunchedEffect(serverBarcodeText) {
+                    val text = serverBarcodeText
+                    if (showEncodedAztec && encodedAztecBitmap == null && !text.isNullOrBlank()) {
+                        buildEncodedAztec(text) { ok ->
+                            if (!ok) {
+                                showEncodedAztec = false
+                                com.domedav.mavjegy.util.ViewerPrefs.setAztecMode(
+                                    context, purchase.id, false
+                                )
+                            }
+                        }
+                    }
                 }
 
                 LaunchedEffect(serialized, serverBarcodeText, barcodeTargetPx, fetchTrigger, expired) {
@@ -438,6 +517,11 @@ fun TicketDetailScreen(
                                     textAlign = TextAlign.Center
                                 )
                                 Button(onClick = { fetchTrigger++ }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Refresh,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
                                     Text(stringResource(R.string.btn_retry))
                                 }
                             }
@@ -446,17 +530,50 @@ fun TicketDetailScreen(
                         else -> {
                             val simg = serverImageBitmap
                             when {
+                            // Megjegyzett Aztec-mód, de még generálódik: loader az
+                            // eredeti kép felvillantása helyett.
+                            showServerImage && showEncodedAztec && encodedAztecBitmap == null -> {
+                                ExpressiveLoader()
+                            }
                             showServerImage && simg != null -> {
                                 Box(
                                     modifier = Modifier.fillMaxWidth(),
                                     contentAlignment = Alignment.TopCenter
                                 ) {
+                                    val shown = if (showEncodedAztec) encodedAztecBitmap else null
                                     Image(
-                                        bitmap = simg,
+                                        bitmap = shown ?: simg,
                                         contentDescription = stringResource(R.string.cd_server_img),
                                         contentScale = ContentScale.FillWidth,
                                         modifier = Modifier
                                             .fillMaxWidth()
+                                            .pointerInput(simg, serverBarcodeText) {
+                                                detectTapGestures(onLongPress = {
+                                                    if (showEncodedAztec) {
+                                                        showEncodedAztec = false
+                                                        com.domedav.mavjegy.util.ViewerPrefs.setAztecMode(
+                                                            context, purchase.id, false
+                                                        )
+                                                    } else {
+                                                        val text = serverBarcodeText
+                                                        if (encodedAztecBitmap != null) {
+                                                            showEncodedAztec = true
+                                                            com.domedav.mavjegy.util.ViewerPrefs.setAztecMode(
+                                                                context, purchase.id, true
+                                                            )
+                                                        } else if (!text.isNullOrBlank()) {
+                                                            buildEncodedAztec(text) { ok ->
+                                                                if (ok) {
+                                                                    showEncodedAztec = true
+                                                                    com.domedav.mavjegy.util.ViewerPrefs.setAztecMode(
+                                                                        context, purchase.id, true
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                })
+                                            }
                                             .graphicsLayer {
                                                 scaleX = scale
                                                 scaleY = scale
@@ -464,53 +581,17 @@ fun TicketDetailScreen(
                                                 translationY = offsetY ?: 0f
                                             }
                                     )
-                                    if (expired) {
-                                        Box(
-                                            modifier = Modifier
-                                                .matchParentSize()
-                                                .background(Color.Black.copy(alpha = 0.45f)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Surface(
-                                                shape = RoundedCornerShape(24.dp),
-                                                color = MaterialTheme.colorScheme.errorContainer
-                                            ) {
-                                                Text(
-                                                    text = stringResource(R.string.detail_expired),
-                                                    style = MaterialTheme.typography.titleLarge,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                                                )
-                                            }
-                                        }
-                                    }
                                 }
                             }
 
                             showServerImage && loadingServerImage -> ExpressiveLoader()
 
                             else -> {
-                                if (expired) {
-                                    Surface(
-                                        shape = RoundedCornerShape(24.dp),
-                                        color = MaterialTheme.colorScheme.errorContainer
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.detail_expired),
-                                            style = MaterialTheme.typography.titleLarge,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onErrorContainer,
-                                            modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                                        )
-                                    }
-                                } else {
-                                    Text(
-                                        text = stringResource(R.string.detail_img_unavailable),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
+                                Text(
+                                    text = stringResource(R.string.detail_img_unavailable),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                             }
                         }
@@ -559,34 +640,9 @@ fun TicketDetailScreen(
                         photoBitmap = displayPhotoBitmap,
                         isPass = isPass,
                         onOwnerClick = { showOwnerDialog = true },
-                        onEditClick = { showEditDialog = true }
+                        onEditClick = { showEditDialog = true },
+                        isLoadingOwner = isLoadingOwner
                     )
-                }
-            }
-        }
-
-        // TOP ROW — back / retry "cookie" buttons over the page
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (errorMessage != null) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
-                ) {
-                    IconButton(onClick = { fetchTrigger++ }) {
-                        Icon(
-                            Icons.Default.Refresh,
-                            contentDescription = stringResource(R.string.btn_retry),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
             }
         }
@@ -621,14 +677,45 @@ fun TicketDetailScreen(
                 }
             )
         }
+
+        // LEJÁRT-overlay a teljes screenre (edge-to-edge: a system UI alá is ér).
+        // Nem blokkol: pointerInput nélkül az érintések átmennek.
+        if (expired) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color.Black.copy(alpha = 0.45f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.errorContainer
+                ) {
+                    Text(
+                        text = stringResource(R.string.detail_expired),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
 private suspend fun decodePhoto(base64: String?): androidx.compose.ui.graphics.ImageBitmap? {
-    val b64 = base64?.takeIf { it.isNotBlank() } ?: return null
+    var b64 = base64?.takeIf { it.isNotBlank() }?.trim() ?: return null
+    // data:-URI prefix vágása (pl. "data:image/jpeg;base64,...").
+    val comma = b64.indexOf(',')
+    if (b64.startsWith("data:", ignoreCase = true) && comma > 0) {
+        b64 = b64.substring(comma + 1).trim()
+    }
+    if (b64.isBlank()) return null
     return withContext(Dispatchers.Default) {
         try {
-            val bytes = Base64.getDecoder().decode(b64)
+            val bytes = runCatching { Base64.getDecoder().decode(b64) }.getOrNull()
+                ?: Base64.getMimeDecoder().decode(b64)
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
         } catch (_: Exception) {
             null
@@ -644,7 +731,8 @@ private fun OwnerAndValidityPanel(
     photoBitmap: androidx.compose.ui.graphics.ImageBitmap?,
     isPass: Boolean,
     onOwnerClick: () -> Unit,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    isLoadingOwner: Boolean = false
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -659,6 +747,15 @@ private fun OwnerAndValidityPanel(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            if (owner == null && isLoadingOwner) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    ExpressiveLoader()
+                }
+            }
             owner?.let { o ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1013,7 +1110,7 @@ private fun EditPassOwnerDialog(
 ) {
     val context = LocalContext.current
     var name by remember { mutableStateOf(initial?.name ?: "") }
-    var birthDate by remember { mutableStateOf(initial?.birthDate ?: "") }
+    var birthDate by remember { mutableStateOf(formatBirthDate(initial?.birthDate ?: "")) }
     var azonosito by remember { mutableStateOf(initial?.azonosito ?: "") }
     var photoHash by remember { mutableStateOf(initial?.photoHash) }
     var showDatePicker by remember { mutableStateOf(false) }

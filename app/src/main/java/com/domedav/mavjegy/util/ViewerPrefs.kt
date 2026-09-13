@@ -26,4 +26,23 @@ object ViewerPrefs {
                 .apply()
         } catch (_: Exception) {}
     }
+
+    /** Jegyképenkénti nézet: sima szerverkép (false) vagy újrarenderelt Aztec (true). */
+    fun isAztecMode(context: Context, purchaseId: String): Boolean {
+        return try {
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getBoolean("aztec_$purchaseId", false)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun setAztecMode(context: Context, purchaseId: String, aztec: Boolean) {
+        try {
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("aztec_$purchaseId", aztec)
+                .apply()
+        } catch (_: Exception) {}
+    }
 }

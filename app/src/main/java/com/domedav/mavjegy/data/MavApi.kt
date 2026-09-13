@@ -123,8 +123,6 @@ class MavApi(private val tokenStore: TokenStore) {
 
     private val json = Json { isLenient = true; ignoreUnknownKeys = true }
 
-    private var lastVimError: String? = null
-
     private val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor(PapiHeaders(tokenStore))
@@ -134,8 +132,19 @@ class MavApi(private val tokenStore: TokenStore) {
             .build()
     }
 
+    /**
+     * Sima web-kliens PAPI-headerek NÉLKÜL (MÁVINFORM scrape): az interceptor
+     * felülírná az UA-t MAVApp-ra, ezért külön kliens + böngésző-headerek.
+     */
+    private val webClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
     private val baseUrl = "https://mvapi.mav.hu/IN/PROD/"
-    private val vimBaseUrl = "https://vim.mav-start.hu/VIM/PR/20251120/MobileServiceS.svc/rest/"
     private val jsonBody = "application/json; charset=utf-8".toMediaType()
 
     /** PAPI URL-építés a verziózott service-pathekkel (lásd PapiVersions). */
@@ -234,12 +243,6 @@ class MavApi(private val tokenStore: TokenStore) {
                     val msg = findFirstString(root, listOf("message"))
                     error(msg ?: "Login: missing authToken")
                 }
-                // VIM (GetJegykep / BerletTok*) hívásokhoz: felhasználóazonosító, ha adja a szerver
-                val userId = findFirstString(
-                    root,
-                    listOf("felhasznaloAzonosito", "FelhasznaloAzonosito", "regisztraciosAzonosito")
-                )?.takeIf { it.isNotBlank() }
-                if (userId != null) tokenStore.setUserId(userId)
                 tokenStore.setCredentials(email, password)
                 tokenStore.setLoginTime(System.currentTimeMillis())
             }
@@ -329,15 +332,13 @@ class MavApi(private val tokenStore: TokenStore) {
                     takenOver = o.takeOverFlag(),
                     amount = o.priceAmount(),
                     currency = o.currencyKey(),
+                    // Név: CSAK serviceNames[0] + top-level kulcsok. Rekurzív keresés
+                    // TILOS: a price.currency.name ("HUF")-ot találná meg névként.
+                    // A hiányzó nevet az enrich-blokk pótolja details-ből.
                     name = (names?.firstOrNull() as? kotlinx.serialization.json.JsonPrimitive)?.content
                         ?.takeIf { s -> s.isNotBlank() }
                         ?: listOf("name", "Name", "Nev", "nev", "ajanlatNev", "title")
-                            .firstNotNullOfOrNull { k -> o.str(k) }
-                        ?: findStringKey(o, "ajanlatNev")
-                        ?: findStringKey(o, "name")
-                        ?: findStringKey(o, "nev")
-                        ?: findStringKey(o, "title")
-                        ?: findStringKey(o, "megnevezes"),
+                            .firstNotNullOfOrNull { k -> o.str(k) },
                     passHolderId = o.str("passHolderId")
                 )
             } ?: emptyList()).distinctBy { it.id }
@@ -479,7 +480,12 @@ class MavApi(private val tokenStore: TokenStore) {
                 .build()
         ).execute()
 
-        if (!tokenStore.hasAuthToken() && !tokenStore.hasToken()) return@withContext null
+        if (!tokenStore.hasAuthToken() && !tokenStore.hasToken()) {
+            // Token nélkül hálózat sincs: diszk-cache az egyetlen forrás.
+            return@withContext OfflineStore.loadPassOwner(context, "global")?.let {
+                PassOwnerData(it.fullName, it.birthDate, it.photoBase64, it.azonosito)
+            }
+        }
         var response = doCall()
         if (response.code == 401 || response.code == 403) {
             response.close()
@@ -496,93 +502,79 @@ class MavApi(private val tokenStore: TokenStore) {
         } catch (_: Exception) {
             null
         }
-        // Agresszív offline cache: frissít, ha tud; hálózatként elérhetetlen esetén cache-ből szolgál
+        // Offline cache: a jó cache-elt fotót üres friss adat nem írhatja felül.
+        val cached = OfflineStore.loadPassOwner(context, "global")
         if (fresh != null) {
-            OfflineStore.savePassOwner(context, "global", fresh.fullName, fresh.birthDate, fresh.photoBase64, fresh.azonosito)
-            fresh
+            val merged = fresh.copy(
+                photoBase64 = fresh.photoBase64?.takeIf { it.isNotBlank() }
+                    ?: cached?.photoBase64
+            )
+            OfflineStore.savePassOwner(context, "global", merged.fullName, merged.birthDate, merged.photoBase64, merged.azonosito)
+            merged
         } else {
-            OfflineStore.loadPassOwner(context, "global")?.let {
+            cached?.let {
                 PassOwnerData(it.fullName, it.birthDate, it.photoBase64, it.azonosito)
             }
         }
     }
 
+    /**
+     * Kétmenetes tulajdonos-kinyerés: minden objektum-szint részleges
+     * PassOwnerData-t adhat; a merge a fotós találatot preferálja.
+     * (A régi korai return a szülő-szint részleges találatával elnyelte
+     * a gyerek picture.image fotót.)
+     */
     private fun findPassOwner(el: kotlinx.serialization.json.JsonElement): PassOwnerData? {
-        when (el) {
-            is JsonObject -> {
-                var fullName: String? = null
-                var birthDate: String? = null
-                var photo: String? = null
-                var azonosito: String? = null
-                el.forEach { (key, v) ->
-                    val prim = v as? kotlinx.serialization.json.JsonPrimitive
-                    val s = prim?.content?.takeIf { it.isNotBlank() && it != "null" }
-                    when {
-                        s != null && key.equals("teljesNev", true) -> fullName = s
-                        s != null && fullName == null && (key.equals("Nev", true) || key.equals("FullName", true) || key.equals("passengerFullName", true)) -> fullName = s
-                        s != null && key.equals("szuletesiDatum", true) -> birthDate = s
-                        s != null && birthDate == null && key.equals("bornDate", true) -> birthDate = s
-                        // PAPI HPTUserPassCard.picture: PictureApiModel/Image-objektum
-                        // {fileName, fileNameExtension, image(b64), mimeType} — a b64
-                        // a beágyazott "image" kulcs alatt van, nem "picture" alatt.
-                        // Hossz-őrrel: csak valódi kép-blobot fogadunk el.
-                        s != null && photo == null && (key.equals("Fenykep", true) || key.equals("berletKepString", true) || key.equals("picture", true) || key.equals("content", true)) -> photo = s
-                        s != null && photo == null && key.equals("image", true) && s.length > 1000 -> photo = s
-                        s != null && azonosito == null && (
-                            key.equals("NevesitesAzonosito", true) ||
-                                key.equals("berletIgazolvanyazonosito", true) ||
-                                key.equals("eszigIgazolvanyszam", true) ||
-                                key.equals("passNumber", true)
-                            ) -> azonosito = s
-                    }
-                }
-                if (fullName != null || birthDate != null || photo != null || azonosito != null) {
-                    return PassOwnerData(fullName, birthDate, photo, azonosito)
-                }
-                el.values.firstNotNullOfOrNull { findPassOwner(it) }?.let { return it }
-                return null
-            }
-            is kotlinx.serialization.json.JsonArray ->
-                el.firstNotNullOfOrNull { findPassOwner(it) }?.let { return it }
-            else -> {}
-        }
-        return null
-    }
-
-
-    /** Uzenetek[] (H=hiba, M=üzenet, R=rendszerhiba) szövegek összefűzése */
-    private fun extractServerMessages(el: kotlinx.serialization.json.JsonElement): String? {
-        val texts = mutableListOf<String>()
-        fun walk(e: kotlinx.serialization.json.JsonElement) {
-            when (e) {
+        val candidates = mutableListOf<PassOwnerData>()
+        fun walk(node: kotlinx.serialization.json.JsonElement) {
+            when (node) {
                 is JsonObject -> {
-                    val szoveg = (e["Szoveg"] as? kotlinx.serialization.json.JsonPrimitive)?.content
-                    if (!szoveg.isNullOrBlank()) texts += szoveg
-                    e.values.forEach { walk(it) }
+                    var fullName: String? = null
+                    var birthDate: String? = null
+                    var photo: String? = null
+                    var azonosito: String? = null
+                    node.forEach { (key, v) ->
+                        val prim = v as? kotlinx.serialization.json.JsonPrimitive
+                        val s = prim?.content?.takeIf { it.isNotBlank() && it != "null" }
+                        when {
+                            s != null && key.equals("teljesNev", true) -> fullName = s
+                            s != null && fullName == null && (key.equals("Nev", true) || key.equals("FullName", true) || key.equals("passengerFullName", true)) -> fullName = s
+                            s != null && key.equals("szuletesiDatum", true) -> birthDate = s
+                            s != null && birthDate == null && key.equals("bornDate", true) -> birthDate = s
+                            // PAPI HPTUserPassCard.picture: PictureApiModel/Image-objektum
+                            // {fileName, fileNameExtension, image(b64), mimeType} — a b64
+                            // a beágyazott "image" kulcs alatt van, nem "picture" alatt.
+                            // Hossz-őrrel: csak valódi kép-blobot fogadunk el.
+                            s != null && photo == null && (key.equals("Fenykep", true) || key.equals("berletKepString", true) || key.equals("picture", true) || key.equals("content", true)) -> photo = s
+                            s != null && photo == null && key.equals("image", true) && s.length > 1000 -> photo = s
+                            s != null && azonosito == null && (
+                                key.equals("NevesitesAzonosito", true) ||
+                                    key.equals("berletIgazolvanyazonosito", true) ||
+                                    key.equals("eszigIgazolvanyszam", true) ||
+                                    key.equals("passNumber", true)
+                                ) -> azonosito = s
+                        }
+                    }
+                    if (fullName != null || birthDate != null || photo != null || azonosito != null) {
+                        candidates += PassOwnerData(fullName, birthDate, photo, azonosito)
+                    }
+                    node.values.forEach { walk(it) }
                 }
-                is kotlinx.serialization.json.JsonArray -> e.forEach { walk(it) }
-                else -> {}
+                is kotlinx.serialization.json.JsonArray -> node.forEach { walk(it) }
+                else -> Unit
             }
         }
         walk(el)
-        return texts.takeIf { it.isNotEmpty() }?.joinToString("; ")
+        if (candidates.isEmpty()) return null
+        // Fotós találat nyer; a többi mezőt az első nem-üres érték adja.
+        return PassOwnerData(
+            fullName = candidates.firstNotNullOfOrNull { it.fullName },
+            birthDate = candidates.firstNotNullOfOrNull { it.birthDate },
+            photoBase64 = candidates.firstNotNullOfOrNull { it.photoBase64 },
+            azonosito = candidates.firstNotNullOfOrNull { it.azonosito }
+        )
     }
 
-    /** Rekurzív kulcskeresés a JSON fában (robusztus válaszparse). */
-    private fun findStringKey(el: kotlinx.serialization.json.JsonElement, key: String): String? {
-        when (el) {
-            is JsonObject -> {
-                (el[key] as? kotlinx.serialization.json.JsonPrimitive)?.let { p ->
-                    if (p.content.isNotBlank() && p.content != "null") return p.content
-                }
-                el.values.firstNotNullOfOrNull { findStringKey(it, key) }?.let { return it }
-            }
-            is kotlinx.serialization.json.JsonArray ->
-                el.firstNotNullOfOrNull { findStringKey(it, key) }?.let { return it }
-            else -> {}
-        }
-        return null
-    }
 
     /**
      * Utastípus / kedvezmény kód -> emberi név térkép PAPI BaseData-ból.
@@ -692,10 +684,12 @@ class MavApi(private val tokenStore: TokenStore) {
                     .build()
             ).execute().use { r ->
                 val raw = r.body!!.string()
+                val root = runCatching { json.parseToJsonElement(raw).jsonObject }.getOrNull()
+                // PAPI üzleti hiba HTTP 200 mellett is jöhet -> az is hiba.
+                root?.let { businessErrorMessage(it) }?.let { msg -> error(msg) }
                 if (!r.isSuccessful) {
-                    val msg = runCatching {
-                        json.parseToJsonElement(raw).jsonObject["message"]?.jsonPrimitive?.content
-                    }.getOrNull()
+                    val msg = root?.let { businessErrorMessage(it) }
+                        ?: root?.get("message")?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }
                     error(msg ?: "Sikertelen regisztráció (HTTP ${r.code})")
                 }
                 null // siker: a szerver emailben küldi a megerősítést
@@ -720,10 +714,12 @@ class MavApi(private val tokenStore: TokenStore) {
                     .build()
             ).execute().use { r ->
                 val raw = r.body!!.string()
+                val root = runCatching { json.parseToJsonElement(raw).jsonObject }.getOrNull()
+                // PAPI üzleti hiba HTTP 200 mellett is jöhet -> az is hiba.
+                root?.let { businessErrorMessage(it) }?.let { msg -> error(msg) }
                 if (!r.isSuccessful) {
-                    val msg = runCatching {
-                        json.parseToJsonElement(raw).jsonObject["message"]?.jsonPrimitive?.content
-                    }.getOrNull()
+                    val msg = root?.let { businessErrorMessage(it) }
+                        ?: root?.get("message")?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }
                     error(msg ?: "Sikertelen kérés (HTTP ${r.code})")
                 }
                 null // 200 üres válasz = az új jelszó elment az email címre
@@ -732,62 +728,11 @@ class MavApi(private val tokenStore: TokenStore) {
     }
 
     /**
-     * VIM (MobileServiceS) bejelentkezés – a GetJegykep EHHEZ a tokenhez kell,
-     * NEM az IK SAML userTokenXml-hez (Bejelentkezes -> LoginResponseVO.Token).
-     * FIGYELEM: magyar IP-ről működik; külföldi IP-ről a MÁV WAF blokkolja
-     * a jelszavas kéréseket (hozzáférési szabályzat).
-     */
-    private suspend fun ensureVimSession(): Boolean = withContext(Dispatchers.IO) {
-        val expiry = tokenStore.getVimTokenExpiry()
-        if (!tokenStore.getVimToken().isNullOrBlank() &&
-            expiry > System.currentTimeMillis() + 60_000L
-        ) return@withContext true
-
-        val email = tokenStore.getEmail() ?: return@withContext false
-        val password = tokenStore.getPassword() ?: return@withContext false
-        if (!tokenStore.hasUaid()) tokenStore.setUaid(generateUaid())
-
-        val body = buildJsonObject {
-            put("FelhasznaloAzonosito", email)
-            put("Jelszo", password)
-            put("Nyelv", "hu")
-            put("UAID", tokenStore.getUaid())
-        }.toString()
-
-        return@withContext try {
-            val resp = vimHttpPost("Bejelentkezes", body)
-            if (resp.code != 200 || resp.contentType?.contains("json") != true) {
-                lastVimError =
-                    "VIM Bejelentkezes: HTTP ${resp.code}, ct=${resp.contentType}, body=${resp.body.take(200)}"
-                Log.d("MAVJEGY", lastVimError ?: "")
-                false
-            } else {
-                val root = json.parseToJsonElement(resp.body)
-                val token = findStringKey(root, "Token") ?: return@withContext false
-                tokenStore.setVimToken(token)
-                tokenStore.setVimTokenExpiry(parseVimExpiry(findStringKey(root, "ErvenyessegVege")))
-                true
-            }
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    private fun parseVimExpiry(raw: String?): Long {
-        if (raw.isNullOrBlank()) return 0L
-        Regex("/Date\\((-?\\d+)").find(raw)?.groupValues?.get(1)?.toLongOrNull()?.let { return it }
-        raw.toLongOrNull()?.let { return if (it > 99_999_999_999L) it else it * 1000L }
-        return try {
-            java.time.ZonedDateTime.parse(raw).toInstant().toEpochMilli()
-        } catch (_: Exception) {
-            0L
-        }
-    }
-
-    /**
      * A SZERVER-OLDALI jegykép: első lekérés után MENTJÜK (hash-dedup + kompresszió),
      * és a KÉPEN LÉVŐ VONALKÓDOT dekódoljuk – ez az egyetlen hivatalos, scannelhető
      * bérlet-kód, amit lokálisan Aztec-ként is megjelenítünk.
+     *
+     * @param bizonylatTechnikaiAzonosito már nem használt (PAPI-only; a hívók miatt maradt).
      */
     suspend fun getServerJegyKep(
         purchaseId: String,
@@ -818,8 +763,8 @@ class MavApi(private val tokenStore: TokenStore) {
             val img = DemoData.demoTicketImage(purchaseId)
             return@withContext ServerJegyképResult(img, "DEMO-BARCODE-12345", fromCache = img != null)
         }
-        // 2. PAPI-elsődleges: csak purchaseId kell (bizonylat-azonosító nem).
-        // (élő próbával megerősítve). VIM-fallback megmarad (alább).
+        // 2. PAPI: csak purchaseId kell (bizonylat-azonosító nem).
+        // (élő próbával megerősítve).
         PapiVersions.load(context)
         val papiImage = tryPapiCertificate(purchaseId)
         if (papiImage != null) {
@@ -832,61 +777,11 @@ class MavApi(private val tokenStore: TokenStore) {
             }
             return@withContext ServerJegyképResult(papiImage, text)
         }
-        // 3. VIM-fallback (régi MobileServiceS GetJegykep): ehhez kell bizonylat-azonosító.
-        if (bizonylatTechnikaiAzonosito.isNullOrBlank()) {
-            return@withContext ServerJegyképResult(null, cachedText, error = "Nincs bizonylat-azonosító")
-        }
-        // 3. VIM-fallback (régi MobileServiceS GetJegykep) – amíg a PAPI
-        // jegykép-op neve/modellje decompile-ból meg nem erősíthető.
-        if (!ensureVimSession()) {
-            return@withContext ServerJegyképResult(
-                null, cachedText,
-                error = "VIM bejelentkezés sikertelen (magyar IP szükséges)"
-            )
-        }
-
-        val body = buildJsonObject {
-            put("BizonylatAzonosito", kotlinx.serialization.json.buildJsonArray {
-                add(kotlinx.serialization.json.JsonPrimitive(bizonylatTechnikaiAzonosito))
-            })
-            put("FelhasznaloAzonosito", tokenStore.getEmail() ?: "")
-            put("Nyelv", "hu")
-            put("Token", tokenStore.getVimToken())
-            put("UAID", tokenStore.getUaid())
-        }.toString()
-
-        return@withContext try {
-            val resp = vimHttpPost("GetJegykep", body)
-            val ct = resp.contentType ?: ""
-            if (resp.code != 200 || !ct.contains("json")) {
-                ServerJegyképResult(
-                    null, cachedText,
-                    error = "GetJegykep blokkolva (HTTP ${resp.code}, ct=${ct}): ${resp.body.take(200)}"
-                )
-            } else {
-                val root = json.parseToJsonElement(resp.body)
-                val b64 = findStringKey(root, "Jegykep")
-                if (b64.isNullOrBlank()) {
-                    ServerJegyképResult(
-                        null, cachedText,
-                        error = extractServerMessages(root) ?: "A szerver nem adott vissza jegyképet"
-                    )
-                } else {
-                    val bytes = java.util.Base64.getDecoder().decode(b64)
-                    OfflineStore.saveServerJegyKep(context, purchaseId, bytes)
-
-                    var text = OfflineStore.loadServerBarcode(context, purchaseId)
-                    if (text.isNullOrBlank()) {
-                        val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        text = bmp?.let { com.domedav.mavjegy.util.BarcodeImageDecoder.decode(it) }
-                        if (!text.isNullOrBlank()) OfflineStore.saveServerBarcode(context, purchaseId, text)
-                    }
-                    ServerJegyképResult(bytes, text)
-                }
-            }
-        } catch (e: Exception) {
-            ServerJegyképResult(null, cachedText, error = e.message ?: "Hálózati hiba")
-        }
+        // PAPI nem adott képet -> nincs fallback (a VIM elavult, kivéve).
+        return@withContext ServerJegyképResult(
+            null, cachedText,
+            error = "A szerver nem adott vissza jegyképet"
+        )
     }
 
     /**
@@ -1063,87 +958,17 @@ class MavApi(private val tokenStore: TokenStore) {
         return ""
     }
 
-    // ---- VIM (MobileServiceS) hívások: HttpURLConnection + pontos eredeti-app header-ek ----
-    // Azért HttpURLConnection (és nem OkHttp), hogy a platform Conscrypt TLS-ujjlenyomata
-    // megegyezzen a hivatalos MÁV appéval -> a WAF (F5/FortiWeb) átengedi a /rest/ POST-okat.
-
-    private data class VimResponse(val code: Int, val contentType: String?, val body: String)
-
-    private suspend fun vimHttpPost(op: String, bodyJson: String): VimResponse =
-        withContext(Dispatchers.IO) {
-            val conn = java.net.URL(vimBaseUrl + op).openConnection() as java.net.HttpURLConnection
-            try {
-                conn.requestMethod = "POST"
-                conn.connectTimeout = 30_000
-                conn.readTimeout = 60_000
-                conn.doOutput = true
-                conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
-                conn.setRequestProperty("Accept", "gzip")
-                conn.setRequestProperty("Accept-Encoding", "gzip")
-                // Nincs User-Agent beállítva: a keretrendszer adja a gyári "Dalvik/..." UA-t,
-                // amit a hivatalos app is küld -> a WAF ezt várja.
-                conn.outputStream.use { it.write(bodyJson.toByteArray(Charsets.UTF_8)) }
-                val code = conn.responseCode
-                val ct = conn.contentType
-                val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-                val raw = if (conn.contentEncoding?.contains("gzip", ignoreCase = true) == true)
-                    java.util.zip.GZIPInputStream(stream).readBytes()
-                else stream.readBytes()
-                VimResponse(code, ct, raw.toString(Charsets.UTF_8))
-            } finally {
-                conn.disconnect()
-            }
-        }
-
-    /**
-     * UAID generátor – portolva a hivatalos app k8/n1.smali fájljából.
-     * Formátum: "0-" + 24 karakter (4x6 base62 az UUID 16 bájtjából) + 4 karakter checksum,
-     * ahol a checksum a (karakterkód-összeg * 0x26f5) utolsó 4 tizes jegye, az utolsó jegy
-     * helyére betűvel: chr(lastDigit + 0x61) ('a'..'j').
-     */
-    private fun generateUaid(): String {
-        val alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-        fun b62(n: Int): String {
-            var x = n
-            var acc = ""
-            repeat(6) {
-                acc = alphabet[x % 0x3e] + acc
-                x /= 0x3e
-            }
-            return acc
-        }
-
-        fun rint(b: ByteArray, o: Int): Int =
-            (b[o].toInt() and 0xff shl 24) or
-                (b[o + 1].toInt() and 0xff shl 16) or
-                (b[o + 2].toInt() and 0xff shl 2) or
-                (b[o + 3].toInt() and 0xff)
-
-        val uuid = java.util.UUID.randomUUID()
-        val bytes = java.io.ByteArrayOutputStream().also {
-            java.io.DataOutputStream(it).use { d ->
-                d.writeLong(uuid.mostSignificantBits)
-                d.writeLong(uuid.leastSignificantBits)
-            }
-        }.toByteArray()
-        val huf = listOf(0, 4, 8, 12).joinToString("") { b62(kotlin.math.abs(rint(bytes, it))) }
-        val prod = huf.sumOf { it.code } * 0x26f5
-        val s = prod.toString()
-        val last4 = s.substring(s.length - 4)
-        val ca = last4.toCharArray()
-        ca[ca.size - 1] = (last4.last().toString().toInt() + 0x61).toChar()
-        return "0-$huf${String(ca)}"
-    }
-
     suspend fun fetchMavinformList(page: Int = 0): List<MavinformItem> = withContext(Dispatchers.IO) {
         val url = if (page == 0) "https://www.mavcsoport.hu/mavinform"
                   else "https://www.mavcsoport.hu/mavinform?page=$page"
         val request = Request.Builder()
             .url(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", BROWSER_UA)
+            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+            .header("Accept-Language", "hu-HU,hu;q=0.9,en;q=0.8")
             .get()
             .build()
-        val response = client.newCall(request).execute()
+        val response = webClient.newCall(request).execute()
         response.use {
             if (!it.isSuccessful) error("HTTP ${it.code}")
             MavinformScraper.parseList(it.body!!.string())
@@ -1153,10 +978,12 @@ class MavApi(private val tokenStore: TokenStore) {
     suspend fun fetchMavinformDetail(url: String): String = withContext(Dispatchers.IO) {
         val request = Request.Builder()
             .url(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", BROWSER_UA)
+            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+            .header("Accept-Language", "hu-HU,hu;q=0.9,en;q=0.8")
             .get()
             .build()
-        val response = client.newCall(request).execute()
+        val response = webClient.newCall(request).execute()
         response.use {
             if (!it.isSuccessful) error("HTTP ${it.code}")
             MavinformScraper.parseDetail(it.body!!.string())
@@ -1166,6 +993,10 @@ class MavApi(private val tokenStore: TokenStore) {
     private companion object {
         const val USER_AGENT =
             "MAVApp/2.5.18-prod (hu.mav.emmapp; build: 874; Android 14)"
+
+        /** Valósnak tűnő mobil Chrome UA a web-scrape-hez (mavcsoport.hu). */
+        const val BROWSER_UA =
+            "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
 
         /** Rekurzív keresés a JSON-fában (a PAPI beágyazva is adhatja a tokent). */
         fun findFirstString(root: JsonObject, keys: List<String>): String? {

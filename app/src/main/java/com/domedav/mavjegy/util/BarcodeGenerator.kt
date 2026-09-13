@@ -13,9 +13,14 @@ object BarcodeGenerator {
 
     enum class Type { AZTEC }
 
-    fun generate(content: String, type: Type, width: Int, height: Int): ImageBitmap {
+    /**
+     * @param charset a kódolt bájtok karakterkészlete. Szerver-kód újrarenderelésnél
+     *   ISO-8859-1 (bájt-hű körút az eredeti PDF417-hez; az UTF-8 ECI duplázná a
+     *   128 feletti bájtokat a nyers streamben).
+     */
+    fun generate(content: String, type: Type, width: Int, height: Int, charset: String = "ISO-8859-1"): ImageBitmap {
         val hints = mutableMapOf<EncodeHintType, Any>(
-            EncodeHintType.CHARACTER_SET to "UTF-8",
+            EncodeHintType.CHARACTER_SET to charset,
             EncodeHintType.MARGIN to 4
         )
         hints[EncodeHintType.ERROR_CORRECTION] = 50

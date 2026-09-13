@@ -639,12 +639,10 @@ private suspend fun performShareTicket(
         snackbar.show(context.getString(R.string.hint_img_download), isError = false)
         val cachedDetails = try { withContext(Dispatchers.IO) { TicketCache.load(context, purchase.id) } } catch (_: Exception) { null }
         val details = try { api.getTicketDetails(purchase.id) } catch (_: Exception) { null } ?: cachedDetails
+        // PAPI-ban nincs ticketDatas[] -> bizonylat-azonosító gyakran null; a PAPI
+        // jegykép-ághoz nem is kell (csak purchaseId), ezért nincs hard gate.
         val bizAzon = details?.ticketData?.bizonylatTechnikaiAzonosito
             ?: cachedDetails?.ticketData?.bizonylatTechnikaiAzonosito
-        if (bizAzon.isNullOrBlank()) {
-            snackbar.show(context.getString(R.string.err_no_biz), isError = true)
-            return
-        }
         if (details != null && !(parseIso(purchase.validTo)?.isBefore(LocalDateTime.now()) ?: false)) {
             withContext(Dispatchers.IO) { TicketCache.save(context, purchase.id, details) }
         }
