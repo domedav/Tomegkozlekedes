@@ -64,8 +64,8 @@ jobs:
         if: steps.ver.outputs.exists == 'false'
         run: |
           sed -i '/proxyHost\|proxyPort\|hosts\.file\|aapt2FromMavenOverride/d' gradle.properties
-          # CI-runneren bőven van RAM: az órás R8-fulladást heap-triplázás oldja.
-          sed -i 's/-Xmx2048m/-Xmx6g/' gradle.properties
+          # CI-runneren bőven van RAM: az R8 OOM/fulladást nagy heap oldja.
+          sed -i 's/-Xmx2048m/-Xmx10g/' gradle.properties
           cat gradle.properties
 
       - uses: actions/cache@v4
