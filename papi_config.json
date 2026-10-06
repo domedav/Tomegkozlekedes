@@ -1,0 +1,31 @@
+{
+  "clientVersion": "2.5.18-prod",
+  "build": "874",
+  "apiKey": "232AC6FE-46BE-479B-894D-BFC96E548945",
+  "partnerName": "App2025",
+  "endpoints": {
+    "versionInfo": "VersionInfo/GetVersionInfo",
+    "login": "Authentication/Login",
+    "refreshToken": "Authentication/RefreshToken",
+    "purchases": "PreviousPurchase/GetPreviousPurchases",
+    "purchaseDetails": "PreviousPurchase/GetPreviousPurchaseDetails",
+    "passCard": "Profile/GetPassCard",
+    "registration": "Profile/Registration",
+    "forgotPassword": "Profile/ForgottenPassword",
+    "customerTypes": [
+      "BaseDataApi/GetCustomerTypes",
+      "BaseDataApi/GetModalities",
+      "BaseDataApi/GetBaseListData"
+    ]
+  },
+  "servicePaths": {
+    "userProfile": "UserProfile/4_13_0_47/",
+    "order": "Order/4_13_0_23/",
+    "management": "Management/4_13_0_11/",
+    "baseData": "BaseData/4_13_0_12/",
+    "log": "Log/4_13_0_10/",
+    "offer": "Offer/4_13_0_10/",
+    "refund": "Refund/4_13_0_10/",
+    "scheduler": "Scheduler/4_13_0_5/"
+  }
+}

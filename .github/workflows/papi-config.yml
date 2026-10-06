@@ -1,0 +1,32 @@
+name: PAPI config probe
+
+on:
+  schedule:
+    # Hetente hétfőn 03:00 UTC: élő MÁV PAPI felderítés.
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Probe live PAPI and refresh papi_config.json
+        run: python3 tools/papi_probe.py
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- papi_config.json papi_config.json.old; then
+            echo "No change."
+          else
+            git config user.name "papi-probe-bot"
+            git config user.email "papi-probe-bot@users.noreply.github.com"
+            git add papi_config.json papi_config.json.old
+            git commit -m "chore: refresh papi_config.json (automated PAPI probe)"
+            git push
+          fi

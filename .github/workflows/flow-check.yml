@@ -1,0 +1,26 @@
+name: PAPI flow check
+
+on:
+  schedule:
+    # Naponta 04:00 UTC: full endpoint flow-teszt.
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "register = csak regisztrál, full = teljes flow"
+        required: false
+        default: "full"
+
+jobs:
+  flow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run flow check
+        env:
+          MAV_TEST_EMAIL: ${{ secrets.MAV_TEST_EMAIL }}
+          MAV_TEST_PASSWORD: ${{ secrets.MAV_TEST_PASSWORD }}
+        run: python3 tools/flow_check.py --mode ${{ inputs.mode || 'full' }}
