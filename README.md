@@ -5,7 +5,6 @@
 
 ## Letöltés
 <a href="https://github.com/domedav/MavJegyApp/releases/latest"><img width="240" alt="Letöltés GitHubról" src="tools/play_white/out/github_button.png" /></a>
-<a href="https://play.google.com/store/apps/details?id=com.domedav.mavjegy"><img width="240" alt="Letöltés Google Playről" src="tools/play_white/out/googleplay_button.png" /></a>
 
 Közvetlen APK (mindig a legfrissebb CI-release): https://github.com/domedav/MavJegyApp/releases/latest/download/app-release.apk
 
