@@ -63,10 +63,11 @@ jobs:
       - name: Neutralize Termux-only gradle.properties
         if: steps.ver.outputs.exists == 'false'
         run: |
-          sed -i '/proxyHost\|proxyPort\|hosts\.file\|aapt2FromMavenOverride/d' gradle.properties
-          # CI-runneren bőven van RAM: az R8 OOM/fulladást nagy heap oldja.
-          sed -i 's/-Xmx2048m/-Xmx10g/' gradle.properties
-          cat gradle.properties
+          # Csak az önálló Termux-sorokat dobjuk; a jvmargs-sorból csak a
+          # hosts-fragmentet vesszük ki (az -Xmx-nek meg kell maradnia!).
+          sed -i '/^systemProp\./d; /aapt2FromMavenOverride/d' gradle.properties
+          sed -i 's/-Djdk\.net\.hosts\.file=[^ ]*//g; s/-Xmx2048m/-Xmx10g/' gradle.properties
+          grep -c . gradle.properties; grep jvmargs gradle.properties
 
       - uses: actions/cache@v4
         if: steps.ver.outputs.exists == 'false'
