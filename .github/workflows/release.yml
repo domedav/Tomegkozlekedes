@@ -1,109 +1,112 @@
-name: Release APK
+# MÁV-megkeresés miatt LETILTVA: release-t már nem készítünk.
+# A hetente futó papi-config probe (papi-config.yml) és a napi flow-check megmarad.
+# Az alábbi teljes workflow kikommentelve — törlés helyett megőrizve.
+# name: Release APK
 
-# Minden pushra: ha az app verziója (versionName) új taget ér,
-# aláírt release-APK-t buildel és GitHub Release-t csinál.
-on:
-  push:
-    branches: [master]
-  workflow_dispatch:
+# # Minden pushra: ha az app verziója (versionName) új taget ér,
+# # aláírt release-APK-t buildel és GitHub Release-t csinál.
+# on:
+#   push:
+#     branches: [master]
+#   workflow_dispatch:
 
-permissions:
-  contents: write
+# permissions:
+#   contents: write
 
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+# jobs:
+#   release:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
 
-      - name: Read version
-        id: ver
-        run: |
-          V=$(grep -oP 'versionName = "\K[0-9.]+' app/build.gradle.kts)
-          echo "name=$V" >> "$GITHUB_OUTPUT"
-          if git ls-remote --tags origin "v$V" | grep -q .; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+#       - name: Read version
+#         id: ver
+#         run: |
+#           V=$(grep -oP 'versionName = "\K[0-9.]+' app/build.gradle.kts)
+#           echo "name=$V" >> "$GITHUB_OUTPUT"
+#           if git ls-remote --tags origin "v$V" | grep -q .; then
+#             echo "exists=true" >> "$GITHUB_OUTPUT"
+#           else
+#             echo "exists=false" >> "$GITHUB_OUTPUT"
+#           fi
 
-      - uses: actions/setup-java@v4
-        if: steps.ver.outputs.exists == 'false'
-        with:
-          distribution: temurin
-          java-version: "21"
+#       - uses: actions/setup-java@v4
+#         if: steps.ver.outputs.exists == 'false'
+#         with:
+#           distribution: temurin
+#           java-version: "21"
 
-      - name: Install Android SDK packages
-        if: steps.ver.outputs.exists == 'false'
-        env:
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-        run: |
-          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-          if [ ! -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
-            mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
-            curl -sL -o /tmp/cmdtools.zip "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
-            unzip -qo /tmp/cmdtools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
-            rm -rf "$ANDROID_SDK_ROOT/cmdline-tools/latest"
-            mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
-          fi
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
-          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+#       - name: Install Android SDK packages
+#         if: steps.ver.outputs.exists == 'false'
+#         env:
+#           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+#         run: |
+#           export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+#           if [ ! -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+#             mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+#             curl -sL -o /tmp/cmdtools.zip "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+#             unzip -qo /tmp/cmdtools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+#             rm -rf "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+#             mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+#           fi
+#           yes | sdkmanager --licenses > /dev/null || true
+#           sdkmanager "platforms;android-36" "build-tools;36.0.0"
+#           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+#           echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
 
-      - name: Install Gradle
-        if: steps.ver.outputs.exists == 'false'
-        run: |
-          curl -sL -o /tmp/gradle.zip "https://services.gradle.org/distributions/gradle-9.5.1-bin.zip"
-          unzip -qo /tmp/gradle.zip -d "$HOME/opt"
-          echo "$HOME/opt/gradle-9.5.1/bin" >> "$GITHUB_PATH"
+#       - name: Install Gradle
+#         if: steps.ver.outputs.exists == 'false'
+#         run: |
+#           curl -sL -o /tmp/gradle.zip "https://services.gradle.org/distributions/gradle-9.5.1-bin.zip"
+#           unzip -qo /tmp/gradle.zip -d "$HOME/opt"
+#           echo "$HOME/opt/gradle-9.5.1/bin" >> "$GITHUB_PATH"
 
-      - name: Neutralize Termux-only gradle.properties
-        if: steps.ver.outputs.exists == 'false'
-        run: |
-          # Csak az önálló Termux-sorokat dobjuk; a jvmargs-sorból csak a
-          # hosts-fragmentet vesszük ki (az -Xmx-nek meg kell maradnia!).
-          sed -i '/^systemProp\./d; /aapt2FromMavenOverride/d' gradle.properties
-          sed -i 's/-Djdk\.net\.hosts\.file=[^ ]*//g; s/-Xmx2048m/-Xmx10g/' gradle.properties
-          grep -c . gradle.properties; grep jvmargs gradle.properties
+#       - name: Neutralize Termux-only gradle.properties
+#         if: steps.ver.outputs.exists == 'false'
+#         run: |
+#           # Csak az önálló Termux-sorokat dobjuk; a jvmargs-sorból csak a
+#           # hosts-fragmentet vesszük ki (az -Xmx-nek meg kell maradnia!).
+#           sed -i '/^systemProp\./d; /aapt2FromMavenOverride/d' gradle.properties
+#           sed -i 's/-Djdk\.net\.hosts\.file=[^ ]*//g; s/-Xmx2048m/-Xmx10g/' gradle.properties
+#           grep -c . gradle.properties; grep jvmargs gradle.properties
 
-      - uses: actions/cache@v4
-        if: steps.ver.outputs.exists == 'false'
-        with:
-          path: |
-            ~/.gradle/caches/modules-2
-            ~/.gradle/caches/build-cache-1
-          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle.properties') }}
-          restore-keys: gradle-
+#       - uses: actions/cache@v4
+#         if: steps.ver.outputs.exists == 'false'
+#         with:
+#           path: |
+#             ~/.gradle/caches/modules-2
+#             ~/.gradle/caches/build-cache-1
+#           key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle.properties') }}
+#           restore-keys: gradle-
 
-      - name: Restore release keystore from secrets
-        if: steps.ver.outputs.exists == 'false'
-        env:
-          KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
-          STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-        run: |
-          if [ -z "$KEYSTORE_B64" ]; then
-            echo "::error:: RELEASE_KEYSTORE_B64 secret hiányzik"
-            exit 1
-          fi
-          echo "$KEYSTORE_B64" | base64 -d > release.keystore
-          printf 'storeFile=release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
-            "$STORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > keystore.properties
+#       - name: Restore release keystore from secrets
+#         if: steps.ver.outputs.exists == 'false'
+#         env:
+#           KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
+#           STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+#           KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+#           KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+#         run: |
+#           if [ -z "$KEYSTORE_B64" ]; then
+#             echo "::error:: RELEASE_KEYSTORE_B64 secret hiányzik"
+#             exit 1
+#           fi
+#           echo "$KEYSTORE_B64" | base64 -d > release.keystore
+#           printf 'storeFile=release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+#             "$STORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > keystore.properties
 
-      - name: Build signed release APK
-        if: steps.ver.outputs.exists == 'false'
-        run: gradle assembleRelease --no-daemon
+#       - name: Build signed release APK
+#         if: steps.ver.outputs.exists == 'false'
+#         run: gradle assembleRelease --no-daemon
 
-      - name: Tag and publish GitHub Release
-        if: steps.ver.outputs.exists == 'false'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          V="${{ steps.ver.outputs.name }}"
-          gh release create "v$V" \
-            app/build/outputs/apk/release/app-release.apk \
-            --title "v$V" --generate-notes
+#       - name: Tag and publish GitHub Release
+#         if: steps.ver.outputs.exists == 'false'
+#         env:
+#           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: |
+#           V="${{ steps.ver.outputs.name }}"
+#           gh release create "v$V" \
+#             app/build/outputs/apk/release/app-release.apk \
+#             --title "v$V" --generate-notes
