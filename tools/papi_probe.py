@@ -110,13 +110,28 @@ def svc_candidates(current: str):
     if not m:
         return [current]
     prefix, base = m.group(1), int(m.group(2))
-    return [current] + [f"{prefix}_{p}/" for p in range(base + 1, base + SCAN_AHEAD + 1)]
+    cands = [current]
+    cands += [f"{prefix}_{p}/" for p in range(base + 1, base + SCAN_AHEAD + 1)]
+    # Lefelé is szkennelünk: ha a jelenlegi (pl. szerver által hirdetett,
+    # de ezt a klienst 401-gyel dobó) path halott, egy régebbi MŰKÖDŐ
+    # verziót is megtalálunk (pl. 52 -> 47), nem ragadunk a töröttön.
+    cands += [f"{prefix}_{p}/" for p in range(base - 1, max(base - SCAN_AHEAD, 0) - 1, -1)]
+    return cands
 
 
 def alive(path: str, op: str, body: dict, cfg: dict) -> bool:
     code, _ = post(path + op, body, cfg)
-    # 200 (akár businessError-rel), 401/403/405 = az endpoint létezik.
-    # 404 vagy hálózati hiba = halott.
+    # Login-op (Authentication/*) üres adatokkal: az egészséges path
+    # 200+businessError-rel válaszol. A 401 "Invalid User Key" NEM élő
+    # path-et jelent, hanem azt, hogy a path ehhez a klienshez nem tartozik
+    # (élőben bizonyítva: az 52-es UserProfile mindenkit 401-gyel dobott,
+    # a régi probe mégis beírta a configba — ez törte el a logint).
+    if op.startswith("Authentication/"):
+        return code == 200
+    # Többi op (auth nélküli validáló hívás): az újabb service-ek az
+    # auth-nélküli kérést már a kapuban 401-gyel dobják, miközben auth-tal
+    # tökéletesen működnek (élőben bizonyítva: Order/4_13_0_30). Itt csak
+    # a 404/hálózati hiba jelent halott path-et.
     return code is not None and code != 404
 
 
