@@ -6,7 +6,7 @@ Máv megkeresés miatt ,a kód már nem publikus
 
 ## Letöltés
 <!-- MÁV-megkeresés miatt a release-ek levéve, letöltés nem elérhető. -->
-<!-- <a href="https://github.com/domedav/MavJegyApp/releases/latest/download/app-release.apk"><img width="240" alt="Letöltés GitHubról" src="tools/play_white/out/github_button.png" /></a> -->
+<!-- <a href="https://github.com/domedav/Tomegkozlekedes/releases/latest/download/app-release.apk"><img width="240" alt="Letöltés GitHubról" src="tools/play_white/out/github_button.png" /></a> -->
 
 ## Használat
 
