@@ -20,7 +20,7 @@
   },
   "servicePaths": {
     "userProfile": "UserProfile/4_13_0_47/",
-    "order": "Order/4_13_0_30/",
+    "order": "Order/4_13_0_35/",
     "management": "Management/4_13_0_11/",
     "baseData": "BaseData/4_13_0_13/",
     "log": "Log/4_13_0_10/",
